@@ -1,0 +1,50 @@
+
+.jumbotron-billboard .img {
+    margin-bottom: 0px;
+    opacity: 0.2;
+    color: #fff;
+    background: #000 url("https://bootstrapcreative.com/wp-bc/wp-content/uploads/2017/03/learning-story.png") top center no-repeat;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    overflow: hidden;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:1;
+}
+.jumbotron h2 {margin-top:0;}
+.jumbotron {
+  position:relative;
+  padding-top:50px;
+  padding-bottom:50px;
+}
+.jumbotron .container {
+  position:relative;
+  z-index:2;
+}
+
+@media screen and (max-width: 768px) {
+  .jumbotron {
+    padding-top:20px;
+    padding-bottom:20px;
+  }
+}
+
+.card-pos {
+  border: 3px solid #34495E;
+  padding: 32px 24px;
+  margin: 5px;
+  transition: all 0.3s ease-out;
+} 
+.card-pos:hover {
+  border: 3px solid #00838d;
+  box-shadow: 0px 0px 9999px 9999px rgba(151, 151, 151, 0.247);
+  z-index: 500;
+  transition: all 0.3s ease-out;
+}
+
+.pad{
+  padding: 5px;
+}
+

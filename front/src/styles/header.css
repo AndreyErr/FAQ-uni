@@ -1,0 +1,9 @@
+.marg-top{
+    margin: 0 12px 0 20px;
+}
+
+@media screen and (min-width: 991px) {
+    .leftItem{
+        margin-left: 10px;
+    }
+}
