@@ -15,6 +15,7 @@ import {
 import FaqTopicPageLayout from "./components/faq/FaqTopicPageLayout";
 import NotFound from "./components/NotFound";
 import FaqPageLayout from "./components/faq/FaqPageLayout";
+import AuPageLayout from "./components/authorized/AuPageLayout";
 
 function App() {
   return (
@@ -24,8 +25,13 @@ function App() {
         <Routes>
           <Route path='*' element={<NotFound />} />
           <Route path="/" element={<MainPageLayout />} />
-          <Route path="/faq" element={<FaqPageLayout /> } />
-          <Route path="/faq/:topicId" element={<FaqTopicPageLayout /> } />
+          <Route exact path="/faq" element={<FaqPageLayout /> } />
+          <Route exact path="/faq/:topicId" element={<FaqTopicPageLayout /> } />
+          <Route path="/me" element={<AuPageLayout type={'me'} /> } />
+          <Route path="/users" element={<AuPageLayout type={'users'} /> } />
+          <Route path="/history" element={<AuPageLayout type={'history'} /> } />
+          <Route exact path="/chat" element={<AuPageLayout type={'chat'} /> } />
+          <Route exact path="/chat/:chatId" element={<AuPageLayout type={'chat'}/> } />
         </Routes>
       </BrowserRouter>
       <Footer />
