@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import '../../../styles/mainPage.css';
 
 function MainPageConnectCard(){
@@ -9,9 +10,9 @@ function MainPageConnectCard(){
             </div>
             <h3 className="fs-2">Вопрос 24 часа</h3>
             <p>Задайте свой вопрос и в течение 24 часов наш сотрудник даст вам ответ на вопрос на почту.</p>
-            <a href="#" className="icon-link d-inline-flex align-items-center">
+            <Link to="#" className="icon-link d-inline-flex align-items-center">
                 <button type="button" className="btn btn-primary">Задать вопрос</button>
-            </a>
+            </Link>
         </div>
     );
 }

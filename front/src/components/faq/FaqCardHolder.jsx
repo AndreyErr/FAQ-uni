@@ -3,19 +3,26 @@ import '../../styles/faq.css';
 import FaqCard from "./FaqCard";
 import FaqCardLink from "./FaqCardLink";
 
-function FaqCardHolder(){
+function FaqCardHolder(props){
+
+    let widthSize = 6
+    if(props.blockCount == 1){
+        widthSize = 12
+    }
+
     return(
-        <div className="col-md-6 themed-grid-col">
+        <div className={`col-md-${widthSize} themed-grid-col`}>
             <div className="faq-title text-center pb-3">
-                <h2>FAQ</h2>
+                <h2>{props.title}</h2>
             </div>
-            <div className="faq " id="accordion">
-                <FaqCard />
-                <FaqCard />
-                <FaqCard />
-                <FaqCard />
-                <FaqCard />
-                <FaqCardLink />
+            <div className="faq " id={`accordion-${props.id}`}>
+                {props.faqs.map( faq =>
+                    <FaqCard key={faq.faqid} allAboutFaq={faq} dFaq={props.dFaq} titleTypes={props.titleTypes} setTypeChange={props.setTypeChange} faqsGroupTitleId={props.id}/>
+                )}
+                {widthSize == 6 
+                ? <FaqCardLink faqLink={props.id} title={props.title} />
+                : ''
+                }
             </div>
         </div>
     );

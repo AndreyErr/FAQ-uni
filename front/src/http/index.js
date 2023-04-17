@@ -2,15 +2,15 @@ import axios from "axios";
 import Cookies from 'js-cookie';
 
 const $host = axios.create({
-    baseURL: 'http://localhost:9000/'
+    baseURL: 'http://localhost:9000/api/'
 })
 
 const $authHost = axios.create({
-    baseURL: 'http://localhost:9000/'
+    baseURL: 'http://localhost:9000/api/'
 })
 
 const authInterceptor = config => {
-    config.headers.authInterceptor = `Bearer ${Cookies.get('accessToken')}`
+    config.headers.authorization = `Bearer ${localStorage.getItem('token')}`
     return config
 }
 

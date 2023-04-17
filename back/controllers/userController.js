@@ -12,7 +12,7 @@ class UserController {
             }
             const {login, email, pass} = req.body
             const newPerson = await userS.createUser(login, email, pass)
-            res.cookie('accessToken', newPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
+            // res.cookie('accessToken', newPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
             res.json(newPerson)
         } catch (e) {
             next(e);
@@ -27,7 +27,7 @@ class UserController {
             }
             const {login, pass} = req.body
             const loginPerson = await userS.loginUser(login, pass)
-            res.cookie('accessToken', loginPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
+            // res.cookie('accessToken', loginPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
             res.json(loginPerson)
         } catch (e) {
             next(e);
@@ -45,14 +45,10 @@ class UserController {
         }
     }
 
-    async refreshUser(req, res, next){
-        try{
-            const {login, email, pass} = req.body
-            const newPerson = await userS.createUser(login, email, pass)
-            res.json(newPerson.rows[0])
-        } catch (e) {
-            next(e);
-        }
+    async check(req, res, next){
+        const {data} = req.user
+        const token = await userS.checkToken(data)
+        res.json(token)
     }
 
     async deleteUser(req, res, next){
@@ -64,6 +60,86 @@ class UserController {
             next(e);
         }
     }
+
+    async selectDataAboutMe(req, res, next){
+        try{
+            const param = req.query.param
+            const data = await userS.selectDataAboutMe(param, req.user)
+            res.json(data)
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    async selectUsers(req, res, next){
+        try{
+            let data = []
+            data[0] = await userS.selectUsers(req.query.limit, req.query.page)
+            data[1] = await userS.countAllUsers()
+            res.json(data)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async deleteUser(req, res, next){
+        try{
+            const {user_id} = req.body
+            const token = req.headers.authorization.split(' ')[1]
+            const ans = await userS.deleteUser(user_id, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async selectUsersTypes(req, res, next){
+        try{
+            const ans = await userS.selectUsersTypes()
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async updateUserStatus(req, res, next){
+        try{
+            const token = req.headers.authorization.split(' ')[1]
+            const {id, status} = req.body
+            const ans = await userS.updateUserStatus(id, status, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async updateUserProb(req, res, next){
+        try{
+            const token = req.headers.authorization.split(' ')[1]
+            const {id, prob} = req.body
+            const ans = await userS.updateUserProb(id, prob, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async selectConfigData(req, res, next){
+        try{
+            const ans=[process.env.UNBAN_LOGIN]
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    // async selectUsers(req, res, next){
+    //     try{
+
+    //     }catch(e){
+    //         next(e);
+    //     }
+    // }
 }
 
 module.exports = new UserController()

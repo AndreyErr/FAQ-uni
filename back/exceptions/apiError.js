@@ -13,4 +13,8 @@ module.exports = class apiError extends Error{
     static BadRequest(littleMessage, message, errors = []) {
         return new apiError(400, littleMessage, message, errors);
     }
+
+    static Forbidden() {
+        return new apiError(403, 'FORBIDDEN', 'Ошибка доступа');
+    }
 }

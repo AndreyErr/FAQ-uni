@@ -22,13 +22,12 @@ const MainPageLogin = observer( () => {
       setIsLoginLoading(true)
       event.preventDefault();
       const data = await loginServ(login, pass)
-      user.setUser(user)
+      user.setUser(data.data)
       user.setIsAuth(true)
       //setIsLoginLoading(false)
-      window.location.href = '/me';
+      window.location.href = '/';
       //history('/me')
     }catch(e){
-      console.log(e)
       let massageErr = e.response.data.message
       if(0 in e.response.data.errors){
         massageErr += ' ( ' + e.response.data.errors[0]['param'] + ' ) '
@@ -44,13 +43,12 @@ const MainPageLogin = observer( () => {
       setIsLoginLoading(true)
       event.preventDefault();
       const data = await regServ(login, email, pass)
-      user.setUser(user)
+      user.setUser(data)
       user.setIsAuth(true)
       //setIsLoginLoading(false)
       window.location.href = '/me';
       //history('/me')
     }catch(e){
-      console.log(e)
       let massageErr = e.response.data.message
       if(0 in e.response.data.errors){
         massageErr += ' ( ' + e.response.data.errors[0]['param'] + ' ) '
@@ -60,6 +58,8 @@ const MainPageLogin = observer( () => {
     }
   }
 
+  localStorage.removeItem('token')
+
   return(
       <div>
           <div className="jumbotron jumbotron-billboard">
@@ -67,9 +67,9 @@ const MainPageLogin = observer( () => {
                 <div className="container">
                     <div className="row">
                         <div className="col-lg-12">
-                          <h2>Войти</h2>
-                          <p>Для более удобной помощи, предлагаем вам войти в аккаунт</p>
-                          <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Войти</button>
+                          <h2>Войти / Зарегистрироваться</h2>
+                          <p>Для помощи в чате предлагаем вам войти в аккаунт или зарегистрироваться</p>
+                          <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Войти / Зарегистрироваться</button>
                       </div>
                    </div>
               </div>
@@ -93,12 +93,12 @@ const MainPageLogin = observer( () => {
                                 <div className="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabIndex="0">
                                   <form>
                                     <div className="mb-3">
-                                      <label htmlFor="exampleInputEmail1" className="form-label">Логин</label>
-                                      <input value={login} onChange={e => setLogin(e.target.value)} type="text" className="form-control" id="login" aria-describedby="emailHelp"></input>
+                                      <label htmlFor="loginLogin" className="form-label">Логин</label>
+                                      <input value={login} onChange={e => setLogin(e.target.value)} type="text" className="form-control" id="loginLogin" aria-describedby="loginLogin"></input>
                                     </div>
                                     <div className="mb-3">
-                                      <label htmlFor="exampleInputPassword1" className="form-label">Пароль</label>
-                                      <input value={pass} onChange={e => setPass(e.target.value)} type="password" className="form-control" id="pass"></input>
+                                      <label htmlFor="passLogin" className="form-label">Пароль</label>
+                                      <input value={pass} onChange={e => setPass(e.target.value)} type="password" className="form-control" id="passLogin"></input>
                                     </div>
                                     {isLoginLoading
                                     ? <Loader />
@@ -110,17 +110,17 @@ const MainPageLogin = observer( () => {
                                 <div className="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabIndex="0">
                                   <form>
                                   <div className="mb-3">
-                                      <label htmlFor="exampleInputEmail1" className="form-label">Email</label>
-                                      <input value={email} onChange={e => setEmail(e.target.value)} type="text" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"></input>
+                                      <label htmlFor="emailReg" className="form-label">Email</label>
+                                      <input value={email} onChange={e => setEmail(e.target.value)} type="text" className="form-control" id="emailReg" aria-describedby="emailReg"></input>
                                     </div>
                                     <div className="mb-3">
-                                      <label htmlFor="exampleInputEmail1" className="form-label">Логин</label>
-                                      <input value={login} onChange={e => setLogin(e.target.value)} type="text" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"></input>
-                                      <div id="emailHelp" className="form-text">По нему будет производится вход.</div>
+                                      <label htmlFor="loginReg" className="form-label">Логин</label>
+                                      <input value={login} onChange={e => setLogin(e.target.value)} type="text" className="form-control" id="loginReg" aria-describedby="loginReg"></input>
+                                      <div id="loginHelp" className="form-text">По нему будет производится вход.</div>
                                     </div>
                                     <div className="mb-3">
-                                      <label htmlFor="exampleInputPassword1" className="form-label">Пароль</label>
-                                      <input value={pass} onChange={e => setPass(e.target.value)} type="password" className="form-control" id="exampleInputPassword1"></input>
+                                      <label htmlFor="passReg" className="form-label">Пароль</label>
+                                      <input value={pass} onChange={e => setPass(e.target.value)} type="password" className="form-control" id="passReg"></input>
                                     </div>
                                     {isLoginLoading
                                     ? <Loader />

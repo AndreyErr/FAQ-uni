@@ -2,6 +2,7 @@
     background: #fdfdfd;
     min-height: 100vh;
     padding: 10vh 0 0;
+    border-radius: 0;
   }
   .faq-title h2 {
     position: relative;
@@ -9,6 +10,7 @@
     display: inline-block;
     font-weight: 600;
     line-height: 1;
+    border-radius: 0;
   }
   .faq-title h2::before {
     content: "";
@@ -19,20 +21,23 @@
     background: #E91E63;
     bottom: -25px;
     margin-left: -30px;
+    border-radius: 0;
   }
-  .faq-title p {
+  .faq-title div {
     padding: 0 190px;
     margin-bottom: 10px;
+    border-radius: 0;
   }
   .faq {
     background: #FFFFFF;
     box-shadow: 0 2px 48px 0 rgba(0, 0, 0, 0.06);
-    border-radius: 4px;
+    border-radius: 0;
   }
   .faq .card {
     border: none;
     background: none;
-    border-bottom: 1px dashed #CEE1F8;
+    border-bottom: 1px solid #0000004b;
+    border-radius: 0;
   }
   .faq .card .card-header {
     padding: 0px;
@@ -42,10 +47,13 @@
     -moz-transition: all 0.3s ease 0s;
     -o-transition: all 0.3s ease 0s;
     transition: all 0.3s ease 0s;
+    background-color: #efefef;
+    border-radius: 0;
   }
   .faq .card .card-header:hover {
-    background: rgba(233, 30, 99, 0.1);
+    background: rgba(30, 57, 233, 0.1);
     padding-left: 10px;
+    border-radius: 0;
   }
   .faq .card .card-header .faq-title {
     width: 100%;
@@ -65,21 +73,31 @@
     cursor: pointer;
     padding-top: 20px;
     padding-bottom: 20px;
+    border-radius: 0;
   }
   .faq .card .card-body {
     padding: 30px;
     padding-left: 35px;
     padding-bottom: 16px;
+    padding-top: 20px;
     font-weight: 400;
     font-size: 16px;
-    color: #6F8BA4;
+    color: #485b6b;
     line-height: 28px;
     letter-spacing: 1px;
-    border-top: 1px solid #F3F8FF;
+    border-top: 1px solid #cccfd4;
+    border-radius: 0;
   }
-  .faq .card .card-body p {
+  .faq .card .card-body div {
     margin-bottom: 14px;
+    border: 1px solid #00000038;
+    border-radius: 5px;
+    padding: 5px;
   }
+  .faq .a {
+    text-decoration: none;
+  }
+
   @media (max-width: 991px) {
     .faq {
       margin-bottom: 30px;

@@ -1,38 +1,164 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import HelpStatus from "./HelpStatus";
 import MesChat from "./MesChat";
 import MesForm from "../MesForm";
+import { deleteDialogAct, selectDialogAct, selectMessagesAct, setMessageReadAct } from "../../../../http/chatAPI";
+import { Context } from "../../../..";
+import socket from "../../../../http/socket";
+import Loader from "../../../ui/Loader";
 
-function MesChatLayout(){
+function MesChatLayout(props){
 
   const params = useParams();
+  const {user} = useContext(Context)
+  const history = useNavigate()
+  const [messages, setMessage] = useState([]);
+  const [messagesLoader, setMessageLoader] = useState(true);
+  const [messagesNull, setMessageNull] = useState(true);
+  const [page, setPage] = useState(1);
+  const [lastDialog, setLastDialog] = useState(0);
+  const [dialogType, setDialogType] = useState(props.type);
+  const [dialogFin, setDialogFin] = useState(0);
+  const [lastUserAddMessage, setLastUserAddMessage] = useState(user.user['id']);
+  const [countAllMes, setCountAllMes] = useState(0);
+  const [error, setError] = useState('')
+  const messLimit = 10
 
-  const [messages, setMessage] = useState([
-    {id: 1, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-    {id: 2, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-    {id: 3, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-    {id: 4, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-    {id: 5, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-    {id: 6, date: '2012-01-03', time: '12:00', from: 'aaa', text: 'bbb'},
-  ]);
+  let dialogExist = -1
+  props.dialogs.forEach(function(entry) {
+    if(entry.dialogid == params.chatId){
+      dialogExist = entry.dialogid
+    }
+  });
 
-  const createMessage = (newMessage) => {
-    setMessage([newMessage, ...messages])
+
+  useEffect(() => {
+    try{
+      setMessageLoader(true)
+      setTimeout(() => {
+        if(params.chatId != 'new' && dialogExist > -1){
+          setPage(1)
+          setCountAllMes(0)
+          setMessageNull(true)
+          setError('')
+          if(dialogType == 'chat'){
+            socket.off('newMessageForDialog' + lastDialog)
+            socket.off('newMessageForDialog' + params.chatId)
+            setLastDialog(params.chatId)
+          }
+          selectDialogAct(params.chatId).then((result) => {
+            if(result.dialogstatus != 2 && result.dialogstatus != 3){
+              setDialogFin(0)
+            }else{
+              setDialogFin(1)
+            }
+          })
+          selectMessagesAct(params.chatId, messLimit, 1).then((result) => {
+              if(result == 'null'){
+                setMessageNull(true)
+              }else{
+                setMessage(result[0])
+                setCountAllMes(Number(result[1]))
+                setMessageNull(false)
+                setLastUserAddMessage(result[0][0].fromuser)
+                if(result[0][0].fromuser != user.user['id'] && result[2] == 1 && dialogType == 'chat'){
+                  setMessageReadAct(params.chatId).then((result) => {
+                    socket.emit('readDialog',{
+                      dialogid: params.chatId,
+                      userreadId: user.user['id']
+                    })
+                  })
+                }
+              }
+              setMessageLoader(false)
+          })
+        }
+      }, 0)
+    }catch(e){
+        console.log(e)
+        setMessageLoader(false)
+        if(dialogType == 'chat'){
+          history('/chat')
+        }else{
+          history('/history')
+        }
+    }
+  }, [params.chatId, dialogExist])
+
+  async function addPageWithMessages(){
+    selectMessagesAct(params.chatId, messLimit, page + 1).then((result) => {
+      setMessage(messages.concat(result[0]))
+      setPage(page + 1)
+    })
   }
 
-  console.log(params)
+  async function deleteDialog(){
+    const chat = Number(params.chatId)
+    deleteDialogAct(chat).then((result) => {
+      console.log(chat, props.dialogs, props.dialogs.filter(item => item.dialogid !== chat))
+      props.setDialog(props.dialogs.filter(item => item.dialogid !== chat))
+      //history('/history')
+    })
+  }
 
-  return(
-    <div>
-      <MesForm create={createMessage} />
-      {params.chatId != 'new' ? (
+  function createMessage (newMessage) {
+    if(dialogType == 'chat'){
+      setMessage([newMessage, ...messages])
+      setCountAllMes(Number(countAllMes) + 1)
+      setLastUserAddMessage(user.user['id'])
+    }
+  }
+
+  if(dialogType == 'chat'){
+    socket.off('newMessageForDialog' + lastDialog)
+    socket.off('newMessageForDialog' + params.chatId)
+    socket.on('newMessageForDialog' + params.chatId, (data) => { 
+      if(user.user['id'] != data.userSend && Number(data.finFlag) != 3){
+        setMessage([data.data, ...messages])
+        setCountAllMes(Number(countAllMes) + 1)
+        setLastUserAddMessage(0)
+        if(data.finFlag == 1 || data.finFlag == 2){
+          setDialogFin(1)
+        }
+        console.log('АХУЕТЬ 2.0 ->', data)
+      }
+    })
+  }
+  
+  function rend(){
+    if(props.dialogsLoading){
+      return <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Загрузка... </h4><Loader /></div>
+    }else{
+      return <div>
+      {((params.chatId == 'new' && props.dialogsCount < 5) || dialogExist > -1) && dialogType == 'chat' && dialogFin != 1 && dialogFin != 2
+      ? <MesForm error={error} type={dialogType}  setError={setError} create={createMessage} dialogs={props.dialogs} setDialog={props.setDialog} id={params.chatId} setDialogNull={props.setDialogNull} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} />
+      : params.chatId == 'new' 
+        ? <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Вы достигли максимально доступное кол-во онлайн чатов! Общайтесь в тех, что уже есть!</h4></div> 
+        : (dialogType == 'chat') && dialogFin != 1
+          ? <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Не найдено</h4></div> 
+          : ''
+      }
+      {params.chatId != 'new' && dialogExist > -1 ? (
         <div>
-          <HelpStatus />
-          <MesChat messages={messages}/>
+          {user.user['status'] === 5 && (dialogType == 'history' || dialogType == 'historyall') 
+          ? <div className="p-4 mb-3 bg-light rounded">
+              <div className="d-grid gap-2">
+                <button type="button" onClick={() => {deleteDialog()}}className="btn btn-danger">Удалить чат!</button>
+              </div>
+             </div>
+          : ''}
+          {user.user['status'] < 3 && countAllMes > 1 && lastUserAddMessage != user.user['id'] && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'user'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : ''}
+          {user.user['status'] >= 3 && (dialogFin == 1 || dialogFin == 2) && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'fin'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : ''}
+          <MesChat messages={messages} messagesLoader={messagesLoader} page={page} messLimit={messLimit} countAllMes={countAllMes} addPageWithMessages={addPageWithMessages}/>
         </div>
       ) : ''}
     </div>
+    }
+  }
+
+  return(
+    rend()
   );
 }
 

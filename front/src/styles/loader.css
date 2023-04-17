@@ -1,0 +1,25 @@
+.loaderPage {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  background: blue;
+  z-index: 10001;
+}
+.loaderPage:before {
+  content: '';
+  height: 5px;
+  background: linear-gradient(to right, transparent, #00ffd0, transparent);
+  width: 100%;
+  margin: auto;
+  display: block;
+  animation: scaleFade 2s linear infinite;
+}
+@keyframes scaleFade {
+  0% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(-120%);
+  }
+}

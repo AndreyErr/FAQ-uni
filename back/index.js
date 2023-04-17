@@ -5,28 +5,52 @@ const cookieParser = require('cookie-parser')
 
 const db = require('./pgdb')
 
-const userRouter = require('./router/userRoutes')
-
 const errorMidle = require('./exceptions/errorMiddleware')
+const tokenService = require('./services/tokenService')
 
 const PORT = process.env.PORT || 9000;
 const app = express()
+const http = require('http').Server(app)
+const io = require('socket.io')(http, {
+    cors: {
+    //   origin: "http://localhost:3000", // Откуда присоединяется сокет клиент
+    //   methods: ["GET", "POST"]
+    origin: '*',
+    }
+  })
+const router = require('./router/index')
+const { selectAction } = require('./controllers/socketController')
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 
-app.use('/user', userRouter)
+app.use('/api', router)
 
 app.use(errorMidle)
 
 const start = async () => {
     try{
-        app.listen(PORT, () => console.log(`Сервер работает на порту ${PORT}`))
+        http.listen(PORT, () => console.log(`Сервер работает на порту ${PORT}`))
     } catch (e) {
         console.log(e);
     }
 }
 
+io.on('connection', (socket) => {
+  const token = socket.handshake.query.token;
+  try {
+    if (!token) throw new Error();
+    if (tokenService.validateToken(token) == null) throw new Error();
+    console.log('a user connected ' + socket.id);
+    selectAction(io, socket)
+  } catch (err) {
+      // jwt verification failed
+      socket.disconnect(); // disconnect client 
+  }
+  socket.on('disconnect', () => {
+    console.log('a user disconnected');
+});
+});
+
 start()
-// app.get('/', (req, res) => { res.status(200).json('Сервер работает111222')})

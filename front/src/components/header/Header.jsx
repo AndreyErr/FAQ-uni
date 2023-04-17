@@ -1,26 +1,47 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import '../../styles/header.css';
 import UserRightMenu from "./rightMenu/User";
 import UnUserRightMenu from "./rightMenu/UnUser";
+import { Context } from "../..";
+import { observer } from "mobx-react-lite";
+import { Link, NavLink, Router } from "react-router-dom";
+import { check } from "../../http/userAPI";
+import Loader from "../ui/Loader";
 
-function Header(){
+const Header = observer((props) => {
+    const {user} = useContext(Context)
+
+    //const [loading, setLoadingMenu] = useState(true)
+    let loading = props.loadingPageStatus
+    const Menu = () => {
+        if(loading){
+            return <Loader />
+        }else if(user.isAuth){
+            return <UserRightMenu name={user.user['login']}/>
+        }else{
+            return <UnUserRightMenu />
+        }
+    }
+
     return(
         <header className="p-3 text-bg-dark fixed-top">
             <div className="container">
                 <div className="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-                    <a href="/" className="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                    <Link to="/" className="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
                         <h3><b>Справка</b></h3>
-                    </a>
+                    </Link>
                     <ul className="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 leftItem">
-                        <li><a href="/faq" className="nav-link px-2 text-white">FAQs</a></li>
-                        <li><a href="/help" className="nav-link px-2 text-white">Задать вопрос</a></li>
+                        <li><Link to="/faq" className="nav-link px-2 text-white">FAQs</Link></li>
+                        {user.user['status'] > 2
+                        ? <li><Link to="/me" className="nav-link px-2 text-white">Админка</Link></li>
+                        : ''
+                        }
                     </ul>
-                    {/* <UnUserRightMenu /> */}
-                    <UserRightMenu />
+                    {Menu()}
                 </div>
             </div>
         </header>
     );
-}
+})
 
 export default Header;
