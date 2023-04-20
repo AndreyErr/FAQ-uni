@@ -13,7 +13,7 @@ function MesForm(props){
   const history = useNavigate()
   
   function addNewMessageAct(){
-    if(props.type == 'chat'){
+    if(props.type == 'chat' || props.type == 'chatall'){
       if(props.id === 'new' && user.user['status'] < 3){
         addDialogByClient(user.user['id'])
       }else{

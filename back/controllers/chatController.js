@@ -17,12 +17,14 @@ class chatController {
             console.log(req.query)
             const userId = req.query.userId
             const type = req.query.type
+            const limit = req.query.limit
+            const page = req.query.page
             let flag = ''
             if(req.query.flag){
                 flag = req.query.flag
             }
             const token = req.headers.authorization.split(' ')[1]
-            const data = await chatS.selectDialogs(userId, type, token, flag)
+            const data = await chatS.selectDialogs(userId, type, limit, page, token, flag)
             res.json(data)
         } catch (e) {
             next(e);
@@ -80,6 +82,7 @@ class chatController {
             const {dialogid} = req.body
             const token = req.headers.authorization.split(' ')[1]
             const data = await chatS.setMessageRead(dialogid, token)
+            console.log(data)
             res.json(data)
         } catch (e) {
             next(e);

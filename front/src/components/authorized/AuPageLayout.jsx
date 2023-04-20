@@ -7,6 +7,7 @@ import FaqNew from "../faq/FaqNew";
 import FaqNewType from "../faq/FaqNewType";
 import { Context } from "../..";
 import { fatchTitles } from "../../http/faqAPI";
+import socket from "../../http/socket";
 
 function AuPageLayout(props){
   const {user} = useContext(Context)
@@ -23,10 +24,15 @@ function AuPageLayout(props){
   }, 0)
   }, [])
 
+  socket.removeAllListeners() ///////////////////////////////////////////////////////////////
+
     return(
       <main>
         <div className="container">
-          <div className="row g-0 pt-5">
+          <div className="pt-5 "></div>
+        </div>
+        <div className="container">
+          <div className="row g-0">
             <div className="col-md-3">
                 <AuMenu active={props.type}/>
             </div>
@@ -45,6 +51,7 @@ function AuPageLayout(props){
                 {props.type === 'chat' ? <AuMessagesLayout type={props.type} /> : ''}
                 {props.type === 'history' ? <AuMessagesLayout type={props.type} /> : ''}
                 {props.type === 'historyall' ? <AuMessagesLayout type={props.type} /> : ''}
+                {props.type === 'chatall' ? <AuMessagesLayout type={props.type} /> : ''}
                </div>
             </div>
           </div>

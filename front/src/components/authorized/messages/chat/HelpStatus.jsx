@@ -13,30 +13,34 @@ function HelpStatus(props){
         try{
             props.setDialogCount(props.dialogsCount - 1)
             let mesExit = ''
-            let fin = 1
+            let fin = 8
             if(stat == 3){
-                mesExit = '##### Чат завершён!'
-                fin = 3
-            }else if(stat == 0){
-                mesExit = '##### ' + user.user['login'] + ' завершил чат удовлетворённый поддержкой!'
+                console.log('HELP dialogstat 1')
             }else{
-                fin = 2
-                if(message == ''){
-                    mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой!'
+                if(stat == 2){
+                    mesExit = '##### Чат завершён!'
+                    fin = 10
+                }else if(stat == 0){
+                    mesExit = '##### ' + user.user['login'] + ' завершил чат удовлетворённый поддержкой!'
                 }else{
-                    mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой, оставив следующий комментарий: ' + message
+                    fin = 9
+                    if(message == ''){
+                        mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой!'
+                    }else{
+                        mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой, оставив следующий комментарий: ' + message
+                    }
                 }
+                await addMessageAct(props.id, mesExit, fin).then((result) => {
+                  const token = localStorage.getItem('token')
+                  socket.emit('newMessage',{
+                    token: token,
+                    messageId: result.messageid,
+                    dialogId: result.dialogid,
+                    finFlag: fin
+                  })
+                  history('/chat')
+                })
             }
-            await addMessageAct(props.id, mesExit, fin).then((result) => {
-              const token = localStorage.getItem('token')
-              socket.emit('newMessage',{
-                token: token,
-                messageId: result.messageid,
-                dialogId: result.dialogid,
-                finFlag: fin
-              })
-              history('/chat')
-            })
         }catch(e){
           let massageErr = e.response.data.message
           props.setError(massageErr)
@@ -87,7 +91,13 @@ function HelpStatus(props){
         }else if(props.type == 'fin'){
             return <div className="p-4 mb-3 bg-light rounded">
                 <div className="d-grid gap-2">
-                    <button type="button" onClick={() => {finDialog(3)}}className="btn btn-success">Понятно, завершить чат!</button>
+                    <button type="button" onClick={() => {finDialog(2)}} className="btn btn-success">Понятно, завершить чат!</button>
+                </div>
+        </div>
+        }else if(props.type == 'help'){
+            return <div className="p-2 mb-3 bg-light rounded">
+                <div className="d-grid gap-2 ps-5 pe-5">
+                    <button type="button" onClick={() => {finDialog(3)}} className="btn btn-danger btn-sm">Я не могу вывезти чат!</button>
                 </div>
         </div>
         }

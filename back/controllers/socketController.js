@@ -20,6 +20,7 @@ class socketController {
                 })
                 io.emit('newMessageForDialogN' + result[0].dialogid, {
                     data: result[0],
+                    dataDialog: result[2],
                     finFlag: data.finFlag
                 })
             })

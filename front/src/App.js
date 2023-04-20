@@ -38,6 +38,7 @@ const App = observer( () => {
     }).finally(() => setLoading(false))
   }, 0)
   }, [])
+
   return (
     <div className="App">
       {loading
@@ -61,6 +62,14 @@ const App = observer( () => {
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/history/all/:chatId" element={user.isAuth ? <AuPageLayout type={'historyall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
+          : '' }
+          {user.user['status'] === 4 || user.user['status'] === 5 
+          ?
+            <Route path="/chat/all" element={user.isAuth ? <AuPageLayout type={'chatall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
+          : '' }
+          {user.user['status'] === 4 || user.user['status'] === 5 
+          ?
+            <Route path="/chat/all/:chatId" element={user.isAuth ? <AuPageLayout type={'chatall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           : '' }
           <Route path="/history" element={user.isAuth ? <AuPageLayout type={'history'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           <Route exact path="/history/:chatId" element={user.isAuth ? <AuPageLayout type={'history'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />

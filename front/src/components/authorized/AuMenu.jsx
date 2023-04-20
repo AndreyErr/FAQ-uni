@@ -2,11 +2,12 @@ import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../..";
 import MesDialogsLayoutMenu from "./messages/MesDialogsLayoutMenu";
+import ScrollButton from "./ScrollButton";
 
 function AuMenu(props){
     const {user} = useContext(Context)
     return(
-        <div className="d-flex flex-column flex-shrink-0 p-3 text-bg-dark">
+        <div className="d-flex flex-column flex-shrink-0 p-3 text-bg-dark sticky-top" style={{top: '91px'}}>
             <Link to="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
               <span className="fs-4">Привет, {user.user['login']}</span>
             </Link>
@@ -31,7 +32,7 @@ function AuMenu(props){
                 </li>
                 {user.user['status'] === 4 || user.user['status'] === 5 ?
                 <li className="hoverLink">
-                    <Link to="/chat/all" className={`nav-link text-white ${props.active === 'chatsall' ? 'active' : ''}`}>
+                    <Link to="/chat/all" className={`nav-link text-white ${props.active === 'chatall' ? 'active' : ''}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Все активные чаты
                     </Link>
                 </li>
@@ -50,6 +51,7 @@ function AuMenu(props){
                 : ''}
             </ul>
             {/* <MesDialogsLayoutMenu /> */}
+            <div className="mt-3 d-grid gap-2"><ScrollButton /></div>
         </div>
     );
 }

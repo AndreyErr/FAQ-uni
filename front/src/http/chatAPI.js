@@ -13,12 +13,12 @@ export const addDialogByClientAct = async (id, message) => {
     return data.data
 }
 
-export const selectDialogs = async (userId, type, flag = '') => {
+export const selectDialogs = async (userId, type, limit = 10, page = 0, flag = '') => {
     if(flag !== ''){
         flag = '&flag=' + flag
     }
     console.log('chat/selectDialogs?userId=' + userId + '&type=' + type + flag)
-    const data = await $authHost.get('chat/selectDialogs?userId=' + userId + '&type=' + type + flag)
+    const data = await $authHost.get('chat/selectDialogs?userId=' + userId + '&type=' + type  + '&limit=' + limit + '&page=' + page + flag)
     return data.data
 }
 

@@ -9,11 +9,23 @@ function MesDialogL(props){
     const {user} = useContext(Context)
     const params = useParams();
 
+    console.log(props.dialogsCount, props.dialogsLimit, props.page)
+    console.log(props.dialogsCount > props.dialogsLimit && props.page * props.dialogsLimit < props.dialogsCount)
+
+    function st(){
+        let heightOut = '65vh'
+        if(user.user['status'] > 2){
+            heightOut = '56vh'
+        }
+        const style = {height: heightOut, overflowY: "scroll"}
+        if(props.dialogsCount <= props.dialogsLimit){
+            return {}
+        }else{
+            return style
+        }
+    }
     return(
-        <div>
-            <span className="d-flex align-items-center mb-3 me-md-auto text-white text-decoration-none">
-                <span className="fs-4">Диалоги</span>
-              </span>
+        <div className="Skroll" style={st()}>
             <div className="list-group list-group-flush rounded">
                 {user.user['status'] < 3 && props.dialogsCount < 5 && props.type == 'chat'
                 ? <MesNew />
@@ -24,6 +36,12 @@ function MesDialogL(props){
                 : props.dialogs.map(dialog => 
                     dialog.dialogid == params.chatId ? <MesDialog type={props.type} dialogs={props.dialogs} setDialog={props.setDialog} data={dialog} key={dialog.dialogid} act={'active'} changeDialogPositionToTop={props.changeDialogPositionToTop} /> : <MesDialog type={props.type} dialogs={props.dialogs} setDialog={props.setDialog} data={dialog} key={dialog.dialogid} act={''} changeDialogPositionToTop={props.changeDialogPositionToTop}/>
                 )
+                }
+                {(props.dialogsCount > props.dialogsLimit && props.page * props.dialogsLimit < props.dialogsCount)
+                ?   <div className="d-grid gap-2 mt-2">
+                        <button type="button" onClick={() => {props.addPageWithDialogs()}} className="btn btn-outline-light">Загрузить ещё</button>
+                    </div>
+                : ''
                 }
             </div>
         </div>

@@ -16,33 +16,53 @@ function MesDialog(props){
   }
 
   useEffect(() => {
-    if(props.data.dialogstatus === 2 && props.type == 'chat'){
+    console.log(props.data)
+    if(props.data.dialogstatus === 8 && props.type == 'chat'){
       setReadStatus('bg-success bg-opacity-50')
-    }else if(props.data.dialogstatus === 3 && props.type == 'chat'){
+    }else if(props.data.dialogstatus === 9 && props.type == 'chat'){
       setReadStatus('bg-danger bg-opacity-50')
+    }else if(props.data.ansuser !== props.data.last_mes_user_add && props.data.askuser !== props.data.last_mes_user_add && props.data.ansuser === user.user['id'] && props.type == 'chat'){
+      setReadStatus('bg-info bg-opacity-50')
     }else if(props.data.needtoread === 1 && user.user['id'] !== props.data.last_mes_user_add  && props.type == 'chat'){
       setReadStatus('bg-warning bg-opacity-50')
     }
   }, [])
 
-  if(props.type == 'chat'){
+  if(props.type == 'chat' || props.type == 'chatall'){
     socket.off('newMessageForDialogN' + props.data.dialogid)
     socket.on('newMessageForDialogN' + props.data.dialogid, (data) => {
       console.log('АХУЕТЬ 2.1 ->', data)
       setDate(data.data.dateadd.substring(0, props.data.dateadd.length - 14))
       setTime(data.data.timeadd)
-      props.changeDialogPositionToTop(props.data.dialogid)
-      if((data.data.fromuser === user.user['id'] && (data.finFlag === 1 || data.finFlag === 2)) || data.finFlag === 3){
-        props.setDialog(props.dialogs.filter(item => item.dialogid !== data.data.dialogid))
-        socket.off('newMessageForDialogN' + props.data.dialogid)
-      }else if(data.finFlag === 1){
-        setReadStatus('bg-success bg-opacity-50')
-      }else if(data.finFlag === 2){
-        setReadStatus('bg-danger bg-opacity-50')
-      }else if(props.act == '' && data.finFlag != 3){
-        setReadStatus('bg-warning bg-opacity-50')
-      }else if(data.finFlag !== 3){
-        setMessageReadAct(props.data.dialogid)
+      if(data.finFlag === 1){
+        setReadStatus('bg-warning bg-opacity-10')
+        console.log(1000)
+      }
+      if(props.type == 'chat'){
+        props.changeDialogPositionToTop(props.data.dialogid)
+        if((data.data.fromuser === user.user['id'] && (data.finFlag === 8 || data.finFlag === 9)) || data.finFlag === 10){
+          props.setDialog(props.dialogs.filter(item => item.dialogid !== data.data.dialogid))
+          socket.off('newMessageForDialogN' + props.data.dialogid)
+          console.log(1)
+        }else if(data.finFlag === 8){
+          setReadStatus('bg-success bg-opacity-50')
+          console.log(2)
+        }else if(data.finFlag === 9){
+          setReadStatus('bg-danger bg-opacity-50')
+          console.log(3)
+        }else if(data.dataDialog.ansuser !== data.data.fromuser && data.dataDialog.askuser !== data.data.fromuser && data.dataDialog.ansuser === user.user['id'] && data.finFlag != 10){
+          console.log(data.dataDialog.ansuser !== data.data.fromuser && data.dataDialog.askuser !== data.data.fromuser && data.dataDialog.ansuser === user.user['id'] && data.finFlag != 10)
+          console.log(4)
+          setReadStatus('bg-info bg-opacity-50')
+        }else if(props.act == '' && data.finFlag != 10){
+          console.log(5)
+          setReadStatus('bg-warning bg-opacity-50')
+        }else if(data.finFlag !== 10){
+          if(readStatus !== 'bg-info bg-opacity-50'){
+            setMessageReadAct(props.data.dialogid)
+          }
+          setReadStatus('')
+        }
       }
     })
 
@@ -50,7 +70,7 @@ function MesDialog(props){
     socket.on('readedDialog' + props.data.dialogid + user.user['id'], (data) => {
       console.log('АХУЕТЬ 2.2 ->', data)
       selectDialogAct(props.data.dialogid).then((result) => {
-        if(result.dialogstatus != 2 && result.dialogstatus != 3){
+        if(result.dialogstatus == 0){
           setReadStatus('')
         }
       })
@@ -60,7 +80,9 @@ function MesDialog(props){
   let href = props.type
   if(props.type === 'historyall'){
     href = 'history/all'
-  }
+  }else if(props.type === 'chatall'){
+    href = 'chat/all'
+  } 
 
   return(
     <Link to={"/" + href + "/" + props.data.dialogid} className={`list-group-item list-group-item-action py-3 lh-sm ${readStatus} ${props.act}`} aria-current="true">

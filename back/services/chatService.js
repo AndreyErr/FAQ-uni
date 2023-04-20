@@ -4,7 +4,7 @@ const apiError = require('../exceptions/apiError')
 
 class chatService {
 
-    async selectDialogs(id, type, token, flag = ''){
+    async selectDialogs(id, type, limit, page, token, flag = ''){
         const decoded = tokenService.validateToken(token)
         if(Number(id) !== decoded.data.id && (flag === 'all' && (decoded.data.status != 4 || decoded.data.status != 5))){
             throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
@@ -21,22 +21,25 @@ class chatService {
                 throw apiError.BadRequest('NOT_FOUND_TYPE', `Не найден тип`)
         }
 
+        console.log('555', flag, digitType)
         let data
-        let whereChat = '(askuser = ' + id + ' OR ansuser = ' + id + ') AND ((dialogstatus != 2 AND dialogstatus != 3 AND dialogstatus != 4) OR (dialogstatus = 2 AND ansuser = ' + id + ' ) OR (dialogstatus = 3 AND ansuser = ' + id + ' ))'
-        let whereHist = '(askuser = ' + id + ' OR ansuser = ' + id + ') AND (dialogstatus = 4 OR (dialogstatus = 2 AND ansuser != ' + id + ' ) OR (dialogstatus = 3 AND ansuser != ' + id + ' ))'
+        let countAlldata
+        let whereChat = '(askuser = ' + id + ' OR ansuser = ' + id + ') AND (dialogstatus = 0 OR (dialogstatus = 8 AND ansuser = ' + id + ' ) OR (dialogstatus = 9 AND ansuser = ' + id + ' ))'
+        let whereHist = '(askuser = ' + id + ' OR ansuser = ' + id + ') AND (dialogstatus = 10 OR (dialogstatus = 8 AND ansuser != ' + id + ' ) OR (dialogstatus = 9 AND ansuser != ' + id + ' ))'
         if(flag === 'all'){
             console.log(id)
-            whereChat = 'dialogstatus != 2 OR dialogstatus != 3 OR dialogstatus != 4'
-            whereHist = 'dialogstatus = 2 OR dialogstatus = 3 OR dialogstatus = 4'
+            whereChat = 'dialogstatus = 0'
+            whereHist = 'dialogstatus >= 8'
         }
-        console.log(whereHist)
         if(digitType == 1){
-            data = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE '+whereChat+' ORDER BY last_mes_date_add DESC, last_mes_time_add DESC')
+            data = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE '+whereChat+' ORDER BY last_mes_date_add DESC, last_mes_time_add DESC LIMIT $1 OFFSET $2', [limit, limit * (page - 1)])
+            countAlldata = await pgdb.query('SELECT COUNT(dialogid) AS count FROM dialogs WHERE ' + whereChat)
         }else if(digitType == 2){
-            data = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE '+whereHist+' ORDER BY last_mes_date_add DESC, last_mes_time_add DESC')
+            data = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE '+whereHist+' ORDER BY last_mes_date_add DESC, last_mes_time_add DESC LIMIT $1 OFFSET $2', [limit, limit * (page - 1)])
+            countAlldata = await pgdb.query('SELECT COUNT(dialogid) AS count FROM dialogs WHERE ' + whereHist)
         }
         if(data.rowCount > 0){
-            return [data.rows, data.rowCount]
+            return [data.rows, countAlldata.rows[0]['count']]
         }else{
             return 'null'
         }
@@ -53,7 +56,7 @@ class chatService {
         //     throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
         // }
         if(decoded.data.status < 3){
-            const countUserChats = await pgdb.query('SELECT COUNT(dialogid) AS count FROM dialogs WHERE askuser = $1 AND dialogstatus = 1', [id])
+            const countUserChats = await pgdb.query('SELECT COUNT(dialogid) AS count FROM dialogs WHERE askuser = $1 AND dialogstatus = 0', [id])
             console.log(countUserChats.rows[0]['count'], process.env.CHATS_ON_AIR)
             if(Number(countUserChats.rows[0]['count']) >= process.env.CHATS_ON_AIR){
                 console.log('tr')
@@ -85,21 +88,21 @@ class chatService {
             dialogType = 3
         }
         await this.finChatsWithTime()
-        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date, localtime(0), $3, 1, 1) RETURNING *', [id, selectUserId, dialogType])
+        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date, localtime(0), $3, 0, 1) RETURNING *', [id, selectUserId, dialogType])
         await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ($1, $2, current_date, localtime(0), $3)', [message, id, dialogaded.rows[0]['dialogid']])
         const dialog = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE dialogid = $1', [dialogaded.rows[0]['dialogid']])
         return dialog.rows[0]
     }
 
     async finChatsWithTime(){
-        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus != 2 AND dialogstatus != 3 AND dialogstatus != 4 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date - interval '20 days'")
+        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus = 0 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date - interval '20 days'")
         console.log(dialogs.rowCount, dialogs.rows)
         if(dialogs.rowCount > 0){
             let index = 0
                 for (index = 0; index < dialogs.rowCount; ++index) {
                     console.log(dialogs.rows[index])
                     await pgdb.query("INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ('##### Чат закрыт системой из-за отсутствия активности в течении 20 дней!', -1, current_date, localtime(0), $1)", [dialogs.rows[index]['dialogid']])
-                    await pgdb.query("UPDATE dialogs SET dialogstatus = 4 WHERE dialogid = $1", [dialogs.rows[index]['dialogid']])
+                    await pgdb.query("UPDATE dialogs SET dialogstatus = 10 WHERE dialogid = $1", [dialogs.rows[index]['dialogid']])
                 }
             }
         }
@@ -107,15 +110,15 @@ class chatService {
     async addMessage(dialogid, message, token, finFlag){
         const decoded = tokenService.validateToken(token)
         const aboutDialog = await pgdb.query('SELECT askuser, ansuser, dialogstatus FROM dialogs WHERE dialogid = $1', [dialogid])
-        if(aboutDialog.rows[0]['askuser'] != decoded.data.id && aboutDialog.rows[0]['ansuser'] != decoded.data.id){
+        if(aboutDialog.rows[0]['askuser'] != decoded.data.id && aboutDialog.rows[0]['ansuser'] != decoded.data.id && decoded.data.status < 4){
             throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
-        }else if(((aboutDialog.rows[0]['dialogstatus'] == 2 || aboutDialog.rows[0]['dialogstatus'] == 3) && aboutDialog.rows[0]['ansuser'] != decoded.data.id) || aboutDialog.rows[0]['dialogstatus'] == 4){
+        }else if(((aboutDialog.rows[0]['dialogstatus'] == 8 || aboutDialog.rows[0]['dialogstatus'] == 9) && aboutDialog.rows[0]['ansuser'] != decoded.data.id) || aboutDialog.rows[0]['dialogstatus'] == 10){
             throw apiError.BadRequest('HISTORI', `Чат является историей и его нельзя изменить`)
         }
         const data = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ($1, $2, current_date, localtime(0), $3) RETURNING *', [message, decoded.data.id, dialogid])
-        let dalogStatus = finFlag + 1
+        let dalogStatus = finFlag
         let needtoread = 1
-        if(finFlag == 3){
+        if(finFlag == 10){
             needtoread = 0
         }
         await pgdb.query('UPDATE dialogs SET needtoread = $3, dialogstatus = $2 WHERE dialogid = $1', [dialogid, dalogStatus, needtoread])
@@ -125,8 +128,6 @@ class chatService {
     async selectMessages(dialogid, limit, page, token){
         const decoded = tokenService.validateToken(token)
         const dialogData = await pgdb.query('SELECT askuser, ansuser, needtoread FROM dialogs WHERE dialogid = $1', [dialogid])
-
-        /////////////// ИЗМ ДЛЯ АДМИНОВ ///////////////////////////
         if(dialogData.rows[0]){
             if(dialogData.rows[0]['askuser'] != decoded.data.id && dialogData.rows[0]['ansuser'] != decoded.data.id && decoded.data.status < 4){
                 throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
@@ -137,7 +138,7 @@ class chatService {
         const data = await pgdb.query('SELECT * FROM messages LEFT JOIN users ON users.user_id = messages.fromuser WHERE dialogid = $1 ORDER BY messageid DESC LIMIT $2 OFFSET $3', [dialogid, limit, limit * (page - 1)])
         const countMes = await pgdb.query('SELECT COUNT(messageid) AS countmess FROM messages WHERE dialogid = $1 ', [dialogid])
         if(data.rowCount > 0){
-            return [data.rows, countMes.rows[0]['countmess'], dialogData.rows[0]['needtoread']]
+            return [data.rows, countMes.rows[0]['countmess'], dialogData.rows[0]]
         }else{
             return 'null'
         }
@@ -147,12 +148,11 @@ class chatService {
         const decoded = tokenService.validateToken(token)
         const dialogData = await pgdb.query('SELECT askuser, ansuser FROM dialogs WHERE dialogid = $1', [dialogId])
 
-        /////////////// ИЗМ ДЛЯ АДМИНОВ ///////////////////////////
-        if(dialogData.rows[0]['askuser'] != decoded.data.id && dialogData.rows[0]['ansuser'] != decoded.data.id){
+        if(dialogData.rows[0]['askuser'] != decoded.data.id && dialogData.rows[0]['ansuser'] != decoded.data.id  && decoded.data.status < 4){
             throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
         }
         const data = await pgdb.query('SELECT * FROM messages LEFT JOIN users ON users.user_id = messages.fromuser WHERE dialogid = $1 AND messageid = $2 ORDER BY messageid DESC LIMIT 1', [dialogId, messageId])
-        return [data.rows[0], decoded.data.id]
+        return [data.rows[0], decoded.data.id, dialogData.rows[0]]
     }
 
     async setMessageRead(dialogid, token){

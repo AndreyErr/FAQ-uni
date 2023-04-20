@@ -46,3 +46,15 @@ img {
   height: auto;
   max-width: 100%;
 }
+
+.Skroll::-webkit-scrollbar {
+  width: 7px;               /* ширина scrollbar */
+}
+.Skroll::-webkit-scrollbar-track {
+  background: #7c8184;        /* цвет дорожки */
+}
+.Skroll::-webkit-scrollbar-thumb {
+  background-color: #D5DBDB;    /* цвет плашки */
+  border-radius: 5px;       /* закругления плашки */
+  border: 1px solid #212F3D;  /* padding вокруг плашки */
+}
