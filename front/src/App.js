@@ -57,6 +57,10 @@ const App = observer( () => {
           : '' }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
+            <Route path="/FAQs_check" element={user.isAuth ? <AuPageLayout type={'FAQs_check'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
+          : '' }
+          {user.user['status'] === 4 || user.user['status'] === 5 
+          ?
             <Route path="/history/all" element={user.isAuth ? <AuPageLayout type={'historyall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           : '' }
           {user.user['status'] === 4 || user.user['status'] === 5 

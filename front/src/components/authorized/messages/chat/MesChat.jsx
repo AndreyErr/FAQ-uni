@@ -3,6 +3,7 @@ import Message from "./Message";
 import Loader from "../../../ui/Loader";
 
 function MesChat(props){
+    console.log('meschat', props.messages)
     return(
     <div className="p-4 mb-5 bg-light rounded">
         <h4 className="fst-italic text-black">Чат<span className="float-end">{props.messagesLoader ? <Loader /> : ''}</span></h4>

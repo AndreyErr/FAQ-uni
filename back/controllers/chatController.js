@@ -44,9 +44,9 @@ class chatController {
 
     async addDialogByClient(req, res, next){
         try{
-            const {id, message} = req.body
+            const {id, message, file} = req.body
             const token = req.headers.authorization.split(' ')[1]
-            const data = await chatS.addDialogByClient(id, message, token)
+            const data = await chatS.addDialogByClient(id, message, file, token)
             res.json(data)
         } catch (e) {
             next(e);
@@ -55,9 +55,9 @@ class chatController {
 
     async addMessage(req, res, next){
         try{
-            const {dialogid, message, finFlag} = req.body
+            const {dialogid, message, finFlag, file} = req.body
             const token = req.headers.authorization.split(' ')[1]
-            const data = await chatS.addMessage(dialogid, message, token, finFlag)
+            const data = await chatS.addMessage(dialogid, message, token, finFlag, file)
             res.json(data)
         } catch (e) {
             next(e);
@@ -95,6 +95,43 @@ class chatController {
             console.log(req.body)
             const token = req.headers.authorization.split(' ')[1]
             const ans = await chatS.deleteDialog(dialogid, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async updateDialogStatus(req, res, next){
+        try{
+            const {dialogid, status} = req.body
+            const token = req.headers.authorization.split(' ')[1]
+            const ans = await chatS.updateDialogStatus(dialogid, status, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async changeAnsUser(req, res, next){
+        try{
+            const {dialogid, ansuserid} = req.body
+            const token = req.headers.authorization.split(' ')[1]
+            const ans = await chatS.changeAnsUser(dialogid, ansuserid, token)
+            res.json(ans)
+        }catch(e){
+            next(e);
+        }
+    }
+
+    async fileUpload(req, res, next){
+        try{
+            if(!req.files || !req.body){
+                throw apiError.BadRequest('NOT_FILE', `Нет файла`)
+            }
+            const file = req.files.file
+            const messageId = req.body.messageId
+            const token = req.headers.authorization.split(' ')[1]
+            const ans = await chatS.fileUpload(file, messageId, token)
             res.json(ans)
         }catch(e){
             next(e);

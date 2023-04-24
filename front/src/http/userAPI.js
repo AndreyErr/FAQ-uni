@@ -71,3 +71,8 @@ export const deleteUser = async (id) => {
     })
     return status
 }
+
+export const selectUsersStaffAct = async () => {
+    const users = await $authHost.get('/user/selectUsersStaff')
+    return users.data
+}

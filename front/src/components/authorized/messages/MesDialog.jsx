@@ -16,7 +16,6 @@ function MesDialog(props){
   }
 
   useEffect(() => {
-    console.log(props.data)
     if(props.data.dialogstatus === 8 && props.type == 'chat'){
       setReadStatus('bg-success bg-opacity-50')
     }else if(props.data.dialogstatus === 9 && props.type == 'chat'){
@@ -26,14 +25,43 @@ function MesDialog(props){
     }else if(props.data.needtoread === 1 && user.user['id'] !== props.data.last_mes_user_add  && props.type == 'chat'){
       setReadStatus('bg-warning bg-opacity-50')
     }
+    if(props.data.dialogstatus === 1 && (props.type == 'chatall' || props.data.ansuser === user.user['id'])){
+      setReadStatus('bg-danger bg-opacity-20')
+    }
   }, [])
 
+  
+  socket.off('notificationFor' + props.data.dialogid)
+  socket.on('notificationFor' + props.data.dialogid, (data) => {
+    console.log('АХУЕТЬ 2.4 NCHATS ->', data)
+    if(props.type == 'chatall' || props.data.ansuser === user.user['id']){
+      if(data.notification === 'NOT_READY_FOR_DIALOG'){
+        setReadStatus('bg-danger bg-opacity-20')
+        console.log('notificationFor111')
+      }else if(data.notification === 'READY_FOR_DIALOG'){
+        setReadStatus('')
+      }
+    }
+    if(props.type == 'chat'){
+      if(data.notification === 'CHANGE_CHAT_FOR_ANS_USER' && props.data.ansuser === user.user['id']){
+        props.setDialog(props.dialogs.filter(item => item.dialogid !== props.data.dialogid))
+        socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
+        socket.off('notificationFor' + props.data.dialogid)
+      }
+    }
+  })
+  
+
   if(props.type == 'chat' || props.type == 'chatall'){
-    socket.off('newMessageForDialogN' + props.data.dialogid)
-    socket.on('newMessageForDialogN' + props.data.dialogid, (data) => {
+    
+    socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
+    socket.on('newMessageForDialogDIALOGS' + props.data.dialogid, (data) => {
       console.log('АХУЕТЬ 2.1 ->', data)
       setDate(data.data.dateadd.substring(0, props.data.dateadd.length - 14))
       setTime(data.data.timeadd)
+      if(data.dataDialog.dialogstatus === 0){
+        setReadStatus('')
+      }
       if(data.finFlag === 1){
         setReadStatus('bg-warning bg-opacity-10')
         console.log(1000)
@@ -42,7 +70,7 @@ function MesDialog(props){
         props.changeDialogPositionToTop(props.data.dialogid)
         if((data.data.fromuser === user.user['id'] && (data.finFlag === 8 || data.finFlag === 9)) || data.finFlag === 10){
           props.setDialog(props.dialogs.filter(item => item.dialogid !== data.data.dialogid))
-          socket.off('newMessageForDialogN' + props.data.dialogid)
+          socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
           console.log(1)
         }else if(data.finFlag === 8){
           setReadStatus('bg-success bg-opacity-50')
@@ -87,19 +115,18 @@ function MesDialog(props){
   return(
     <Link to={"/" + href + "/" + props.data.dialogid} className={`list-group-item list-group-item-action py-3 lh-sm ${readStatus} ${props.act}`} aria-current="true">
     <div className="row">
-      <div className="col-md-10">
+      <div className="col-md-12">
         <strong className="mb-1">
           {user.user['status'] > 2 
           ? props.data.userasklogin 
             ? props.data.userasklogin
             : 'Не найден'
           : props.data.dialogid}
-          </strong><br></br>
+          </strong>
+          {props.data.dialogtype === 2 && user.user['status'] > 2 ? <small className="text-danger float-end"><i className="fa-solid fa-circle-dot"></i></small> : null}
+          <br></br>
         <small className="text-info">{date} {time} {user.user['status'] > 2 ? '|' : ''} </small>
         <small className="text-secondary">{user.user['status'] > 2 ? props.data.dialogid : ''}</small>
-      </div>
-      <div className="col-md-2">
-          {/* <small className="text-danger"><i className="fa-solid fa-circle-dot"></i></small> */}
       </div>
     </div>
   </Link>

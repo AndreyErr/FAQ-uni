@@ -9,9 +9,6 @@ function MesDialogL(props){
     const {user} = useContext(Context)
     const params = useParams();
 
-    console.log(props.dialogsCount, props.dialogsLimit, props.page)
-    console.log(props.dialogsCount > props.dialogsLimit && props.page * props.dialogsLimit < props.dialogsCount)
-
     function st(){
         let heightOut = '65vh'
         if(user.user['status'] > 2){

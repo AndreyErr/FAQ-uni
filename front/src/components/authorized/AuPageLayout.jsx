@@ -8,6 +8,7 @@ import FaqNewType from "../faq/FaqNewType";
 import { Context } from "../..";
 import { fatchTitles } from "../../http/faqAPI";
 import socket from "../../http/socket";
+import FaqsCheck from "./FaqsCheck";
 
 function AuPageLayout(props){
   const {user} = useContext(Context)
@@ -48,6 +49,7 @@ function AuPageLayout(props){
               <div>
                 {props.type === 'me' ? <AuAccaunt /> : ''}
                 {props.type === 'users' ? <AuUsers /> : ''}
+                {props.type === 'FAQs_check' ? <FaqsCheck /> : ''}
                 {props.type === 'chat' ? <AuMessagesLayout type={props.type} /> : ''}
                 {props.type === 'history' ? <AuMessagesLayout type={props.type} /> : ''}
                 {props.type === 'historyall' ? <AuMessagesLayout type={props.type} /> : ''}

@@ -15,6 +15,7 @@ router.get('/auth', authMiddleware, userController.check)
 router.get('/selectConfigData', userController.selectConfigData)
 router.get('/selectUsersTypes', authMiddleware, userController.selectUsersTypes)
 router.get('/selectDataAboutMe', authMiddleware, userController.selectDataAboutMe)
+router.get('/selectUsersStaff', authMiddleware, checkRole([4, 5]), userController.selectUsersStaff)
 router.get('/selectUsers', authMiddleware, checkRole([4, 5]), userController.selectUsers)
 router.delete('/deleteUser', authMiddleware, checkRole([4, 5]), userController.deleteUser)
 

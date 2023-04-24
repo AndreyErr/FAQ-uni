@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { addMessageAct } from "../../../../http/chatAPI";
+import { addMessageAct, updateDialogStatusAct } from "../../../../http/chatAPI";
 import { Context } from "../../../..";
 import socket from "../../../../http/socket";
 import { useNavigate } from "react-router-dom";
@@ -11,11 +11,27 @@ function HelpStatus(props){
 
     async function finDialog(stat){
         try{
-            props.setDialogCount(props.dialogsCount - 1)
+            props.setDialogCount(Number(props.dialogsCount) - 1)
             let mesExit = ''
             let fin = 8
-            if(stat == 3){
-                console.log('HELP dialogstat 1')
+            if(stat == 3 || stat == 4){
+                let dialogStatus = 0
+                let notification = ''
+                if(stat == 3){
+                    dialogStatus = 1
+                    notification = 'NOT_READY_FOR_DIALOG'
+                    props.setAbilityToTalk(false)
+                }else if(stat == 4){
+                    notification = 'READY_FOR_DIALOG'
+                    props.setAbilityToTalk(true)
+                }
+                await updateDialogStatusAct(props.id, dialogStatus).then((result) => {
+                    //const token = localStorage.getItem('token')
+                    socket.emit('notification',{
+                        dialogid: props.id,
+                        notification: notification
+                    })
+                })
             }else{
                 if(stat == 2){
                     mesExit = '##### Чат завершён!'
@@ -97,7 +113,13 @@ function HelpStatus(props){
         }else if(props.type == 'help'){
             return <div className="p-2 mb-3 bg-light rounded">
                 <div className="d-grid gap-2 ps-5 pe-5">
-                    <button type="button" onClick={() => {finDialog(3)}} className="btn btn-danger btn-sm">Я не могу вывезти чат!</button>
+                    <button type="button" onClick={() => {finDialog(3)}} className="btn btn-danger btn-sm">Я не могу вывезти чат, мне нужна помощь!</button>
+                </div>
+        </div>
+        }else if(props.type == 'iCanDoIt'){
+            return <div className="p-2 mb-3 bg-light rounded">
+                <div className="d-grid gap-2 ps-5 pe-5">
+                    <button type="button" onClick={() => {finDialog(4)}} className="btn btn-success btn-sm">Я смогу завершить чат!</button>
                 </div>
         </div>
         }

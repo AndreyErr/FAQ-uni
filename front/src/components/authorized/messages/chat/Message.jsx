@@ -1,10 +1,13 @@
 import React, { useContext } from "react";
 import ReactMarkdown from 'react-markdown'
 import { Context } from "../../../..";
+import { useParams } from "react-router-dom";
 
 function Message(props){
   const {user} = useContext(Context)
+  const params = useParams();
   const dateadd = props.data.dateadd.substring(0, props.data.dateadd.length - 14)
+  console.log(props)
     return(
       <tr className="border-bottom border-4">
         <th scope="row" className="table-secondary" width="15%">
@@ -17,7 +20,10 @@ function Message(props){
               : props.data.login} 
         <br></br>
         <small className="text-primary">{dateadd} {props.data.timeadd}</small></th>
-        <td><ReactMarkdown>{props.data.textmessage}</ReactMarkdown></td>
+        <td>
+          <ReactMarkdown>{props.data.textmessage}</ReactMarkdown>
+          {props.data.fileflag && Number(props.data.dialogid) === Number(params.chatId) ? <a href={'http://localhost:9000/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank"><img src={'http://localhost:9000/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> : null}
+        </td>
       </tr>
     );
 }

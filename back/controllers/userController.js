@@ -133,6 +133,16 @@ class UserController {
         }
     }
 
+    async selectUsersStaff(req, res, next){
+        try{
+            const token = req.headers.authorization.split(' ')[1]
+            const data = await userS.selectUsersStaff(token)
+            res.json(data)
+        }catch(e){
+            next(e);
+        }
+    }
+
     // async selectUsers(req, res, next){
     //     try{
 

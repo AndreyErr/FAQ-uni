@@ -160,11 +160,9 @@ class userService {
             let index = 0
             for (index = 0; index < deletedUserDialogs.rowCount; ++index) {
                 if(deletedUserDialogs.rows[index].askuser == -2 || deletedUserDialogs.rows[index].ansuser == -2){
-                    console.log(111)
                     await pgdb.query('DELETE FROM dialogs WHERE dialogid = $1', [deletedUserDialogs.rows[index].dialogid])
                     await pgdb.query('DELETE FROM messages WHERE dialogid = $1', [deletedUserDialogs.rows[index].dialogid])
                 }else{
-                    console.log(222)
                     await pgdb.query('UPDATE dialogs SET askuser = -2, dialogstatus = 4 WHERE dialogid = $1 AND askuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
                     await pgdb.query('UPDATE dialogs SET ansuser = -2, dialogstatus = 4 WHERE dialogid = $1 AND ansuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
                     await pgdb.query('UPDATE messages SET fromuser = -2 WHERE dialogid = $1 AND fromuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
@@ -174,6 +172,15 @@ class userService {
             await pgdb.query('DELETE FROM probability_receiving_chat WHERE user_id = $1', [id])
             return 'OK'
         }
+    }
+
+    async selectUsersStaff(token){
+        const decoded = tokenService.validateToken(token)
+        if(decoded.data.status < 4){
+            throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
+        }
+        const users = await pgdb.query('SELECT users.user_id, login, status, title AS status_text FROM users JOIN usersstatus ON users.status = usersstatus.usersstatusid WHERE status > 2 AND status <= $1 ORDER BY status, user_id DESC', [decoded.data.status])
+        return users.rows
     }
 }
 

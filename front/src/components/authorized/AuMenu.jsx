@@ -25,6 +25,13 @@ function AuMenu(props){
                     </Link>
                 </li>
                 : ''}
+                {user.user['status'] === 4 || user.user['status'] === 5 ?
+                <li className="hoverLink">
+                    <Link to="/FAQs_check" className={`nav-link text-white ${props.active === 'FAQs_check' ? 'active' : ''}`}>
+                        <i className="fa-solid fa-user pe-none me-2"></i>FAQs на проверку
+                    </Link>
+                </li>
+                : ''}
                 <li className="hoverLink">
                     <Link to="/chat" className={`nav-link text-white ${props.active === 'chat' ? 'active' : ''}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Чаты

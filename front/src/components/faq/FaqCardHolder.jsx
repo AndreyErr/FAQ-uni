@@ -17,7 +17,7 @@ function FaqCardHolder(props){
             </div>
             <div className="faq " id={`accordion-${props.id}`}>
                 {props.faqs.map( faq =>
-                    <FaqCard key={faq.faqid} allAboutFaq={faq} dFaq={props.dFaq} titleTypes={props.titleTypes} setTypeChange={props.setTypeChange} faqsGroupTitleId={props.id}/>
+                    <FaqCard key={faq.faqid} type={props.type} allAboutFaq={faq} dFaq={props.dFaq} titleTypes={props.titleTypes} setTypeChange={props.setTypeChange} faqsGroupTitleId={props.id}/>
                 )}
                 {widthSize == 6 
                 ? <FaqCardLink faqLink={props.id} title={props.title} />

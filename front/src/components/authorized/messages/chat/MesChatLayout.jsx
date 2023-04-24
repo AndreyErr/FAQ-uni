@@ -3,10 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import HelpStatus from "./HelpStatus";
 import MesChat from "./MesChat";
 import MesForm from "../MesForm";
-import { deleteDialogAct, selectDialogAct, selectMessagesAct, setMessageReadAct } from "../../../../http/chatAPI";
+import { changeAnsUserAct, deleteDialogAct, selectDialogAct, selectMessagesAct, setMessageReadAct } from "../../../../http/chatAPI";
 import { Context } from "../../../..";
 import socket from "../../../../http/socket";
 import Loader from "../../../ui/Loader";
+import { selectUsersStaffAct } from "../../../../http/userAPI";
 
 function MesChatLayout(props){
 
@@ -21,8 +22,13 @@ function MesChatLayout(props){
   const [dialogType, setDialogType] = useState(props.type);
   const [dialogFin, setDialogFin] = useState(0);
   const [lastUserAddMessage, setLastUserAddMessage] = useState(user.user['id']);
+  const [usersInDialog, setUsersInDialog] = useState([0, 0]);
   const [countAllMes, setCountAllMes] = useState(0);
+  const [abilityToTalk, setAbilityToTalk] = useState(true);
   const [error, setError] = useState('')
+
+  const [usersToChange, setUsersToChange] = useState([]);
+
   const messLimit = 10
 
   let dialogExist = -1
@@ -43,14 +49,16 @@ function MesChatLayout(props){
           setMessageNull(true)
           setError('')
           if(dialogType == 'chat' || dialogType == 'chatall'){
-            socket.off('newMessageForDialog' + lastDialog)
-            socket.off('newMessageForDialog' + params.chatId)
+            socket.off('newMessageForDialogMESSAGES' + lastDialog)
+            socket.off('newMessageForDialogMESSAGES' + params.chatId)
             setLastDialog(params.chatId)
           }
           selectDialogAct(params.chatId).then((result) => {
-            if(result.dialogstatus === 1){
-              setDialogFin(2) ////////////////////////////////////////////////////////////////
-            }else if(result.dialogstatus != 8 && result.dialogstatus != 9){
+            setAbilityToTalk(true)
+            if(result.dialogstatus == 1){
+              setAbilityToTalk(false)
+            }
+            if(result.dialogstatus != 8 && result.dialogstatus != 9){
               setDialogFin(0)
             }else{
               setDialogFin(1)
@@ -64,6 +72,7 @@ function MesChatLayout(props){
                 setCountAllMes(Number(result[1]))
                 setMessageNull(false)
                 setLastUserAddMessage(result[0][0].fromuser)
+                setUsersInDialog([result[2].askuser, result[2].ansuser])
                 if(result[0][0].fromuser != user.user['id'] && result[2].needtoread == 1 && (dialogType == 'chat') && !(result[2].ansuser !== result[0][0].fromuser && result[2].askuser !== result[0][0].fromuser && result[2].ansuser === user.user['id'])){
                   setMessageReadAct(params.chatId).then((result) => {
                     socket.emit('readDialog',{
@@ -75,6 +84,11 @@ function MesChatLayout(props){
               }
               setMessageLoader(false)
           })
+          if(user.user['status'] > 3){
+            selectUsersStaffAct().then((result) => {
+              setUsersToChange(result)
+            })
+          }
         }
       }, 0)
     }catch(e){
@@ -98,9 +112,24 @@ function MesChatLayout(props){
   async function deleteDialog(){
     const chat = Number(params.chatId)
     deleteDialogAct(chat).then((result) => {
-      console.log(chat, props.dialogs, props.dialogs.filter(item => item.dialogid !== chat))
       props.setDialog(props.dialogs.filter(item => item.dialogid !== chat))
       //history('/history')
+    })
+  }
+
+  async function changeAnsUser(id){
+    const idUser = Number(id)
+    changeAnsUserAct(params.chatId, idUser).then((result) => {
+      setUsersInDialog([usersInDialog[1], idUser])
+      socket.emit('newChatFor',{
+        idUser: idUser,   
+        idChat: params.chatId   ,
+        changeUser: true   
+      })
+      socket.emit('notification',{
+        dialogid: params.chatId,
+        notification: "CHANGE_CHAT_FOR_ANS_USER"
+    })
     })
   }
 
@@ -113,9 +142,9 @@ function MesChatLayout(props){
   }
 
   if(dialogType == 'chat' || dialogType == 'chatall'){
-    socket.off('newMessageForDialog' + lastDialog)
-    socket.off('newMessageForDialog' + params.chatId)
-    socket.on('newMessageForDialog' + params.chatId, (data) => { 
+    socket.off('newMessageForDialogMESSAGES' + lastDialog)
+    socket.off('newMessageForDialogMESSAGES' + params.chatId)
+    socket.on('newMessageForDialogMESSAGES' + params.chatId, (data) => { 
       if(user.user['id'] != data.userSend && Number(data.finFlag) != 10){
         setMessage([data.data, ...messages])
         setCountAllMes(Number(countAllMes) + 1)
@@ -125,6 +154,9 @@ function MesChatLayout(props){
         }
         console.log('АХУЕТЬ 2.0 ->', data)
       }
+      if(data.dataDialog.dialogstatus === 0){
+        setAbilityToTalk(true)
+      }
     })
   }
   
@@ -133,7 +165,16 @@ function MesChatLayout(props){
       return <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Загрузка... </h4><Loader /></div>
     }else{
       return <div> {/*className="sticky-top" style={{top: '91px'}}*/}
-      {user.user['status'] === 3 && (dialogFin == 0) && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'help'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : ''}
+      {user.user['status'] > 3 && dialogType == 'chatall' && dialogFin != 1 && dialogFin != 2
+      ? <div className="p-4 mb-3 bg-light rounded">
+          <select value={usersInDialog[1]} onChange={e => changeAnsUser(e.target.value)} class="form-select" size="3" aria-label="size 3 select example">
+            {usersToChange.map(user => 
+              <option key={user.user_id} value={user.user_id}>{user.login} ({user.status_text})</option>
+            )}
+          </select>
+         </div>
+      : ''}
+      {user.user['status'] === 3 && dialogFin != 1 && dialogFin != 2 && dialogType == 'chat' ? abilityToTalk === true ? <HelpStatus id={params.chatId} type={'help'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : <HelpStatus id={params.chatId} type={'iCanDoIt'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : ''}
       {((params.chatId == 'new' && props.dialogsCount < 5) || dialogExist > -1) && (dialogType == 'chat' || dialogType == 'chatall') && dialogFin != 1 && dialogFin != 2
       ? <MesForm error={error} type={dialogType}  setError={setError} create={createMessage} dialogs={props.dialogs} setDialog={props.setDialog} id={params.chatId} setDialogNull={props.setDialogNull} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} />
       : params.chatId == 'new' 
@@ -147,7 +188,7 @@ function MesChatLayout(props){
           {user.user['status'] === 5 && (dialogType == 'history' || dialogType == 'historyall') 
           ? <div className="p-4 mb-3 bg-light rounded">
               <div className="d-grid gap-2">
-                <button type="button" onClick={() => {deleteDialog()}}className="btn btn-danger">Удалить чат!</button>
+                <button type="button" onClick={() => {deleteDialog()}} className="btn btn-danger">Удалить чат!</button>
               </div>
              </div>
           : ''}

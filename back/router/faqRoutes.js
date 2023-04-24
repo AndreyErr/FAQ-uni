@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/authMiddleware')
 const checkRole = require('../middleware/roleMiddleware')
 
 router.post('/addTypeTitle', authMiddleware, checkRole([4, 5]), body('title').isLength({'min': 1, 'max': 100}), faqController.addTypeTitle)
-router.post('/addFaq', authMiddleware, checkRole([4, 5]), body('q').isLength({'min': 5, 'max': 300}), body('a').isLength({'min': 3, 'max': 500}), faqController.faqAdd)
+router.post('/addFaq', authMiddleware, checkRole([3, 4, 5]), body('q').isLength({'min': 5, 'max': 300}), body('a').isLength({'min': 3, 'max': 500}), faqController.faqAdd)
 router.post('/updateFaq', authMiddleware, checkRole([4, 5]), body('q').isLength({'min': 5, 'max': 300}), body('a').isLength({'min': 3, 'max': 500}), faqController.faqUpdate)
 router.post('/saveLike', faqController.saveLike)
 router.get('/selectTypeTitle',authMiddleware, faqController.selectTypeTitle)

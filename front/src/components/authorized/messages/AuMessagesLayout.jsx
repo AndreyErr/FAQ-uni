@@ -21,7 +21,6 @@ function AuMessagesLayout(props){
 
     let flag = ''
     let type = props.type
-    console.log(props.type)
 
     useEffect(() => {
         socket.removeAllListeners()
@@ -52,12 +51,22 @@ function AuMessagesLayout(props){
         }
     }, [])
 
-    if(props.type == 'chat' || props.type == 'chatall'){
+    if(props.type == 'chat'){
         socket.off('newChatFor' + user.user['id'])
         socket.on('newChatFor' + user.user['id'], (data) => {
             setDialog([data.data, ...dialogs])
             setDialogNull(false)
+            setDialogCount(Number(dialogsCount) + 1)
             console.log('АХУЕТЬ ->', data)
+        })
+    }
+    if(props.type == 'chatall'){
+        socket.off('newChat')
+        socket.on('newChat', (data) => {
+            console.log(data)
+            setDialog([data.data, ...dialogs])
+            setDialogNull(false)
+            setDialogCount(Number(dialogsCount) + 1)
         })
     }
 

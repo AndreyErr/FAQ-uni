@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import MesLoockLike from "../authorized/messages/chat/MesLoockLike";
 import Loader from "../ui/Loader";
 import { addFaqAct } from "../../http/faqAPI";
 import MessageText from "../ui/MessageText";
 import MessageToastContainer from "../ui/MessageToastContainer";
+import { Context } from "../..";
 
 function FaqNew(props){
+  const {user} = useContext(Context)
   const [faqMessage, setFaqMessage] = useState({text: ''})
   const [typeTitleValue, setTypeTitleValue] = useState(1)
   const [faqQ, setFaqQ] = useState('')
@@ -80,8 +82,10 @@ function FaqNew(props){
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button onClick={addFaq} type="button" className="btn btn-success">Создать</button>
-                    <button type="button" className="btn btn-success">Отправить на проверку</button>
+                    {user.user['status'] > 3 
+                    ? <button onClick={addFaq} type="button" className="btn btn-success">Создать</button>
+                    : <button onClick={addFaq} type="button" className="btn btn-success">Отправить на проверку</button>
+                    }
                   </div>
                 </form>
               </div>

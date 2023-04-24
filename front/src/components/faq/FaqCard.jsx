@@ -31,6 +31,11 @@ function FaqCard(props){
         }
     }
 
+    let group = ''
+    {props.titleTypes.map(types => 
+        types.faqtypeid === type ? group = types.title : ''
+    )}
+
     function ansHelpResult(){
         props.allAboutFaq.dateadd = props.allAboutFaq.dateadd.substring(0, props.allAboutFaq.dateadd.length - 14)
         return <span>Доступность ответа для пользователей:
@@ -63,7 +68,7 @@ function FaqCard(props){
                 <div className="mb-0">
                     <h5 className="faq-title" data-bs-toggle="collapse" data-bs-target={`#faqCollapse-${props.allAboutFaq.faqid}`} aria-expanded="false" aria-controls={`faqCollapse-${props.allAboutFaq.faqid}`}>
                         <b>{props.allAboutFaq.qwest}</b>
-                        {user.user['status'] > 3 ? <span><button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm float-end">Удалить</button></span> : '' }
+                        {user.user['status'] > 3 ? <span><button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm float-end">{props.type === 'uncheck' ? 'Отказаться' : 'Удалить'}</button></span> : '' }
                     </h5>
                 </div>
             </div>
@@ -74,12 +79,13 @@ function FaqCard(props){
                     {error.length > 0
                     ? <MessageText text={error} typeOf={'danger'} /> 
                     : ''}
-                    {props.search ? <span className="text-muted float-end">Из группы "{props.allAboutFaq.title}"</span> : ''}
+                    {props.search || props.type === 'uncheck' ? <span className="text-muted float-end">Из группы "{props.type === 'uncheck' ? group : props.allAboutFaq.title}"</span> : ''}
                     {user.user['status'] > 3 ? ansHelpResult() : ansHelp()}
                     {user.user['status'] > 3 
                     ?   <span>
                             <button onClick={() => {setEditCartState(true)}} type="button" className="btn btn-outline-primary btn-sm me-2">Изменить</button>
-                            <button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm">Удалить</button>
+                            {props.type === 'uncheck' ? <button onClick={() => {saveFaqChange()}} type="button" className="btn btn-outline-primary btn-sm me-2">Опубликовать</button> : ''}
+                            <button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm">{props.type === 'uncheck' ? 'Отказаться' : 'Удалить'}</button>
                         </span>
                     : ''}
                 </div>
@@ -124,10 +130,10 @@ function FaqCard(props){
                 : ''}
                 {user.user['status'] > 3 
                 ?   <span>
-                        <button onClick={() => {saveFaqChange()}} type="button" className="btn btn-success btn-sm me-2">Сохранить изменение</button>
+                        <button onClick={() => {saveFaqChange()}} type="button" className="btn btn-success btn-sm me-2">{props.type === 'uncheck' ? 'Опубликовать' : 'Сохранить изменение'}</button>
                         <button onClick={() => {cancelEdit()}} type="button" className="btn btn-outline-secondary btn-sm me-2">Отменить изменение</button>
                         <button onClick={() => {setError(''); setEditCartState(false)}} type="button" className="btn btn-outline-secondary btn-sm me-2">Назад</button>
-                        <button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm">Удалить FAQ</button>
+                        <button onClick={() => {props.dFaq(props.allAboutFaq.faqid)}} type="button" className="btn btn-outline-danger btn-sm">{props.type === 'uncheck' ? 'Отказаться' : 'Удалить FAQ'}</button>
                     </span>
                 : ''}
             </div>

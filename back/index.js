@@ -7,6 +7,7 @@ const db = require('./pgdb')
 
 const errorMidle = require('./exceptions/errorMiddleware')
 const tokenService = require('./services/tokenService')
+const fileUpload = require("express-fileupload")
 
 const PORT = process.env.PORT || 9000;
 const app = express()
@@ -19,13 +20,16 @@ const io = require('socket.io')(http, {
     }
   })
 const router = require('./router/index')
+const filesRouter = require('./router/filesRouter')
 const { selectAction } = require('./controllers/socketController')
 
+app.use(fileUpload({}))
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 
 app.use('/api', router)
+app.use('/files', filesRouter)//express.static('./files')
 
 app.use(errorMidle)
 

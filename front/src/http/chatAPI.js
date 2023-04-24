@@ -5,10 +5,11 @@ import { Context } from ".."
 import { io } from "socket.io-client"
 import socket from "./socket"
 
-export const addDialogByClientAct = async (id, message) => {
+export const addDialogByClientAct = async (id, message, file) => {
     const data = await $authHost.post('chat/addDialogByClient', {
         id: id,
-        message: message
+        message: message,
+        file: file
     })
     return data.data
 }
@@ -17,7 +18,6 @@ export const selectDialogs = async (userId, type, limit = 10, page = 0, flag = '
     if(flag !== ''){
         flag = '&flag=' + flag
     }
-    console.log('chat/selectDialogs?userId=' + userId + '&type=' + type + flag)
     const data = await $authHost.get('chat/selectDialogs?userId=' + userId + '&type=' + type  + '&limit=' + limit + '&page=' + page + flag)
     return data.data
 }
@@ -27,18 +27,19 @@ export const selectDialogAct = async (dialogid) => {
     return data.data
 }
 
-export const addMessageAct = async (dialogid, message, finFlag = 0) => {
+export const addMessageAct = async (dialogid, message, finFlag = 0, file = false) => {
+    console.log('file '+file)
     const data = await $authHost.post('chat/addMessage', {
         dialogid: dialogid,
         message: message,
-        finFlag: finFlag
+        finFlag: finFlag,
+        file: file
     })
     return data.data
 }
 
 export const selectMessagesAct = async (dialogid, limit = 10, page = 1) => {
     const data = await $authHost.get('chat/selectMessages?dialogid=' + dialogid + '&limit=' + limit + '&page=' + page)
-    console.log(data.data)
     return data.data
 }
 
@@ -55,5 +56,26 @@ export const deleteDialogAct = async (dialogid) => {
             dialogid: dialogid
         }
     })
+    return data.data
+}
+
+export const updateDialogStatusAct = async (dialogid, status) => {
+    const data = await $authHost.post('chat/updateDialogStatus', {
+        dialogid: dialogid,
+        status: status
+    })
+    return data.data
+}
+
+export const changeAnsUserAct = async (dialogid, ansuserid) => {
+    const data = await $authHost.post('chat/changeAnsUser', {
+        dialogid: dialogid,
+        ansuserid: ansuserid
+    })
+    return data.data
+}
+
+export const fileUploadAct = async (file) => {
+    const data = await $authHost.post('chat/fileUpload', file)
     return data.data
 }

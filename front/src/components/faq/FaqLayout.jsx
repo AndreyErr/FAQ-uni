@@ -110,6 +110,10 @@ function search(str){
 function faqTitleShow(){
     if(faqsLoading){
         return <Loader />
+    }else if(ifNoFaqs && type === 'uncheck'){
+        return  <div>
+                    <h2 className="alert alert-dark mb-2 mt-2">Новых FAQs нет</h2>
+                </div>
     }else if(ifNoFaqs){
         return  <div>
                     <h2 className="alert alert-dark mb-5 mt-5">Ни одно faq не создано</h2>
@@ -138,12 +142,12 @@ function faqTitleShow(){
             ? <LoaderPage />
             : ''}
             <div className="row mb-6 text-center px-4 py-5">
-                <h2 className="pb-2">{faqsLoading ? <Loader /> : ''}База знаний</h2>
+                <h2 className="pb-2">{faqsLoading ? <Loader /> : ''}{type !== 'uncheck' ? 'База знаний' : ''}</h2>
                 {faqTitleShow()}
                 {ifNoFaqs 
                 ? ''
                 : faqs.map(title => 
-                    <FaqCardHolder key={title[0]} id={title[0]} title={title[1]} faqs={title[2]} dFaq={dFaq} blockCount={blockCount} titleTypes={titleTypes} setTypeChange={setTypeChange}/>
+                    <FaqCardHolder key={title[0]} id={title[0]} title={title[1]} faqs={title[2]} dFaq={dFaq} blockCount={blockCount} titleTypes={titleTypes} setTypeChange={setTypeChange} type={type}/>
                 )}
             </div>
         </div>
