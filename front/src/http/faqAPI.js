@@ -1,7 +1,4 @@
 import {$authHost, $host} from "./index"
-import jwtDecode from "jwt-decode"
-import { useContext } from "react"
-import { Context } from ".."
 
 export const addTypeTitle = async (title) => {
     const data = await $authHost.post('faq/addTypeTitle', {

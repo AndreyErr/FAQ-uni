@@ -21,6 +21,6 @@ module.exports = function (req, res, next){
             throw '2'
         }
     } catch (e) {
-        return res.status(401).json({type: 'UNAUTHORIZED', message: "Не авторизован" + e})
+        return res.status(401).json({type: 'UNAUTHORIZED', message: "Не авторизован "})
     }
 }

@@ -1,6 +1,5 @@
 import React from "react";
 
-// typeOf, text
 function MessageToast(props){
     return(
         <div className={`toast align-items-center text-bg-${props.typeOf} border-0 show bottom-0 end-0`} role="status" aria-live="polite" aria-atomic="true">

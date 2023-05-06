@@ -12,7 +12,6 @@ class UserController {
             }
             const {login, email, pass} = req.body
             const newPerson = await userS.createUser(login, email, pass)
-            // res.cookie('accessToken', newPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
             res.json(newPerson)
         } catch (e) {
             next(e);
@@ -27,7 +26,6 @@ class UserController {
             }
             const {login, pass} = req.body
             const loginPerson = await userS.loginUser(login, pass)
-            // res.cookie('accessToken', loginPerson.accessToken, {maxAge: 10 * 24 * 60 * 60 * 1000, httpOnly: true})
             res.json(loginPerson)
         } catch (e) {
             next(e);
@@ -143,13 +141,16 @@ class UserController {
         }
     }
 
-    // async selectUsers(req, res, next){
-    //     try{
-
-    //     }catch(e){
-    //         next(e);
-    //     }
-    // }
+    async searchUser(req, res, next){
+        try{
+            const str = req.query.str
+            const limit = req.query.limit
+            const result = await userS.searchUser(str, limit)
+            res.json(result)
+        } catch (e) {
+            next(e);
+        }
+    }
 }
 
 module.exports = new UserController()

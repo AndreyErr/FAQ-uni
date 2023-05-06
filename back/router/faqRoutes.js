@@ -10,7 +10,7 @@ router.post('/addTypeTitle', authMiddleware, checkRole([4, 5]), body('title').is
 router.post('/addFaq', authMiddleware, checkRole([3, 4, 5]), body('q').isLength({'min': 5, 'max': 300}), body('a').isLength({'min': 3, 'max': 500}), faqController.faqAdd)
 router.post('/updateFaq', authMiddleware, checkRole([4, 5]), body('q').isLength({'min': 5, 'max': 300}), body('a').isLength({'min': 3, 'max': 500}), faqController.faqUpdate)
 router.post('/saveLike', faqController.saveLike)
-router.get('/selectTypeTitle',authMiddleware, faqController.selectTypeTitle)
+router.get('/selectTypeTitle',authMiddleware, checkRole([3, 4, 5]), faqController.selectTypeTitle)
 router.get('/selectFaqsByType', faqController.selectFaqs)
 router.get('/selectAllAboutFaqTitle', faqController.selectAllAboutFaqTitle)
 router.get('/searchFaq', faqController.searchFaq)

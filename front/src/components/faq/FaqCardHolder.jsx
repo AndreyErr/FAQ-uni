@@ -21,7 +21,7 @@ function FaqCardHolder(props){
                 )}
                 {widthSize == 6 
                 ? <FaqCardLink faqLink={props.id} title={props.title} />
-                : ''
+                : null
                 }
             </div>
         </div>

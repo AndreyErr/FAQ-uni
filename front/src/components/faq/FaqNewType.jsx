@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { addTypeTitle, deleteTypeTitle, fatchTitles } from "../../http/faqAPI";
+import React, { useState } from "react";
+import { addTypeTitle, deleteTypeTitle } from "../../http/faqAPI";
 import MessageText from "../ui/MessageText";
 import Loader from "../ui/Loader";
 import MessageToastContainer from "../ui/MessageToastContainer";
@@ -11,24 +11,27 @@ function FaqNewType(props){
     const [isLoading, setIsLoading] = useState(false)
     const [stat, setStat] = useState([])
     const [typeOfDeleteAction, setTypeOfDeleteAction] = useState(1)
-
-
-
+    const [titleErr, setTitleErr] = useState('')
 
 
     async function addTypeTitleAction(event){
         try{
-          setIsLoading(true)
-          event.preventDefault();
-          await addTypeTitle(typeTitle).then((result) => {
-            props.setTitleTypes([...props.titleT, result])
-            setError('OK')
-          })
-          setIsLoading(false)
-          setTypeTitle('')
+          setTitleErr('')
+          const reTitle = /^[a-zA-Z0-9\u0400-\u04FF\s]+$/i;
+          if(!String(typeTitle).toLocaleLowerCase().match(reTitle) || typeTitle.length > 100 || typeTitle.length < 1){
+            setTitleErr('Некорректно введено название. Разрешены буквы, цифры. Не менее 1 и не более 100 символов')
+          }else{
+            setIsLoading(true)
+            event.preventDefault();
+            await addTypeTitle(typeTitle).then((result) => {
+              props.setTitleTypes([...props.titleT, result])
+              setError('OK')
+            })
+            setIsLoading(false)
+            setTypeTitle('')
+          }
         }catch(e){
           let massageErr = e.response.data.message
-          console.log(e.response.data)
           setError(massageErr)
           setIsLoading(false)
         }
@@ -54,7 +57,7 @@ function FaqNewType(props){
         <div className="pt-3 pb-3">
             {stat.length > 0 
             ? <MessageToastContainer messages={stat} />
-            : ''}
+            : null}
             <div className="d-grid gap-2">
                 <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newFaqT">
                   Изменить тип FAQ
@@ -66,8 +69,8 @@ function FaqNewType(props){
                 <div className="modal-content">
                   <div className="modal-header text-dark">
                     <h1 className="modal-title fs-5" id="newFaqT">Изменить тип FAQ 
-                    {props.isTitleLoad ? <Loader /> : ''}
-                    {isLoading ? <Loader /> : ''}
+                    {props.isTitleLoad ? <Loader /> : null}
+                    {isLoading ? <Loader /> : null}
                     </h1>
                     <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
@@ -107,16 +110,17 @@ function FaqNewType(props){
                         </table>
                         <div className="modal-title fs-5" id="staticBackdropLabel">Название нового типа:</div>
                         <div className="mb-3">
-                            <textarea value={typeTitle} onChange={e => setTypeTitle(e.target.value)} className="form-control" id="typeTitle" rows="3"></textarea>
+                          <textarea value={typeTitle} onChange={e => setTypeTitle(e.target.value)} className="form-control" id="typeTitle" rows="3"></textarea>
+                          {titleErr.length > 0 ? <div className="text-danger">{titleErr}!</div> : null}
                         </div>
                         {isLoading === true
                         ? <Loader />
-                        : ''}
+                        : null}
                         {error.length > 0 
                         ? error === 'OK' 
                           ? <MessageText text={'Создано'} typeOf={'success'} /> 
                           : <MessageText text={error} typeOf={'danger'} /> 
-                        : ''}
+                        : null}
                     </div>
                     <div className="modal-footer">
                       <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>

@@ -128,14 +128,6 @@ class faqController {
             next(e);
         }
     }
-
-    // async selectUsers(req, res, next){
-    //     try{
-    //      res.json(newPerson)
-    //     }catch(e){
-    //         next(e);
-    //     }
-    // }
 }
 
 module.exports = new faqController()

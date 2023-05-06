@@ -43,7 +43,7 @@ function HelpStatus(props){
                     if(message == ''){
                         mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой!'
                     }else{
-                        mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой, оставив следующий комментарий: ' + message
+                        mesExit = '##### ' + user.user['login'] + ' завершил чат не удовлетворённый поддержкой, оставив следующий комментарий: ```' + message + '```'
                     }
                 }
                 await addMessageAct(props.id, mesExit, fin).then((result) => {
@@ -60,7 +60,6 @@ function HelpStatus(props){
         }catch(e){
           let massageErr = e.response.data.message
           props.setError(massageErr)
-          console.log(e)
         }
     }
 

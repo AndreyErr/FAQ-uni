@@ -1,17 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import '../../styles/header.css';
 import UserRightMenu from "./rightMenu/User";
 import UnUserRightMenu from "./rightMenu/UnUser";
 import { Context } from "../..";
 import { observer } from "mobx-react-lite";
-import { Link, NavLink, Router } from "react-router-dom";
-import { check } from "../../http/userAPI";
+import { Link } from "react-router-dom";
 import Loader from "../ui/Loader";
 
 const Header = observer((props) => {
     const {user} = useContext(Context)
 
-    //const [loading, setLoadingMenu] = useState(true)
     let loading = props.loadingPageStatus
     const Menu = () => {
         if(loading){
@@ -34,7 +32,7 @@ const Header = observer((props) => {
                         <li><Link to="/faq" className="nav-link px-2 text-white">FAQs</Link></li>
                         {user.user['status'] > 2
                         ? <li><Link to="/me" className="nav-link px-2 text-white">Админка</Link></li>
-                        : ''
+                        : null
                         }
                     </ul>
                     {Menu()}

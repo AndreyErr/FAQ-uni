@@ -1,9 +1,6 @@
-import {$authHost, $host} from "./index"
-import jwtDecode from "jwt-decode"
-import { useContext } from "react"
-import { Context } from ".."
+import {$authHost} from "./index"
 
 export const selectConfigData = async () => {
-    const data = await $host.get('user/selectConfigData')
+    const data = await $authHost.get('user/selectConfigData')
     return data
 }

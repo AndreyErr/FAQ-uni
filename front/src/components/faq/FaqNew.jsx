@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import MesLoockLike from "../authorized/messages/chat/MesLoockLike";
 import Loader from "../ui/Loader";
 import { addFaqAct } from "../../http/faqAPI";
 import MessageText from "../ui/MessageText";
-import MessageToastContainer from "../ui/MessageToastContainer";
 import { Context } from "../..";
 
 function FaqNew(props){
@@ -14,22 +13,40 @@ function FaqNew(props){
   const [faqA, setFaqA] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [askErr, setAskErr] = useState('')
+  const [ansErr, setAnsErr] = useState('')
 
   async function addFaq(event){
+    event.preventDefault();
     try{
-      setIsLoading(true)
-      event.preventDefault();
-      await addFaqAct(typeTitleValue, faqA, faqQ).then((result) => {
-        setError('OK')
-      })
-      setIsLoading(false)
-      setFaqQ('')
-      setFaqA('')
+      setAskErr('')
+      setAnsErr('')
+      let notToEnter = false
+      if(faqQ.length === 0 || faqA.length === 0){
+        setError('Заполните все поля для добавления FAQ')
+        notToEnter = true
+      }else{
+        const reAsk = /^[a-zA-Z0-9\u0400-\u04FF\s!@#$%^&*?]+$/i;
+        if(!String(faqQ).toLocaleLowerCase().match(reAsk) || faqQ.length > 300 || faqQ.length < 5){
+          setAskErr('Некорректно введено название. Разрешены буквы, цифры, символы. Не менее 5 и не более 300 символов')
+          notToEnter = true
+        }
+        if(!faqA.length > 300 || faqA.length < 5){
+          setAnsErr('Некорректно введён ответ. Не менее 3 и не более 500 символов')
+          notToEnter = true
+        }
+        if(!notToEnter){
+          setIsLoading(true)
+          await addFaqAct(typeTitleValue, faqQ, faqA).then((result) => {
+            setError('OK')
+          })
+          setIsLoading(false)
+          setFaqQ('')
+          setFaqA('')
+        }
+      }
     }catch(e){
-      console.log(e)
-      let massageErr = e.response.data.message
-      massageErr += ' ( ' + e.response.data.errors[0]['param'] + ' ) '
-      setError(massageErr)
+      setError(e.response.data.message)
       setIsLoading(false)
     }
   }
@@ -53,7 +70,7 @@ function FaqNew(props){
                       <div className="modal-title fs-5" id="staticBackdropLabel">Тип:</div>
                       {props.isTitleLoad 
                       ? <Loader />
-                      : ''
+                      : null
                       }
                       <select value={typeTitleValue} onChange={e => setTypeTitleValue(e.target.value)} id="typeTitleValue" className="form-select form-select-lg mb-3" aria-label=".form-select-lg example">
                       {props.titleT.map(types => 
@@ -62,23 +79,25 @@ function FaqNew(props){
                       </select>
                       <div className="modal-title fs-5" id="staticBackdropLabel">Вопрос пользователя:</div>
                       <div className="mb-3">
-                          <textarea value={faqA} onChange={e => setFaqA(e.target.value)} className="form-control" id="faqA" rows="3"></textarea>
+                        <textarea value={faqQ} onChange={e => setFaqQ(e.target.value)} className="form-control" id="faqQ" rows="3"></textarea>
+                        {askErr.length > 0 ? <div className="text-danger">{askErr}!</div> : null}
                       </div>
                       <div className="modal-title fs-5" id="staticBackdropLabel">Ответ:</div>
                       <div className="mb-3">
-                          <textarea value={faqQ} className="form-control" id="faqQ" onChange={e => {setFaqMessage({...faqMessage, text: e.target.value}); setFaqQ(e.target.value)}} rows="3"></textarea>
+                          <textarea value={faqA} className="form-control" id="faqA" onChange={e => {setFaqMessage({...faqMessage, text: e.target.value}); setFaqA(e.target.value)}} rows="3"></textarea>
                           <div id="emailHelp" className="form-text">Вы можете использовать md разметку.</div>
+                          {ansErr.length > 0 ? <div className="text-danger">{ansErr}!</div> : null}
                       </div>
                       {isLoading === true
                         ? <Loader />
-                        : ''}
+                        : null}
                       {error.length > 0 
                         ? error === 'OK' 
                           ? <MessageText text={'Создано'} typeOf={'success'} /> 
                           : <MessageText text={error} typeOf={'danger'} /> 
-                        : ''}
+                        : null}
                       <hr></hr>
-                      {faqMessage.text.length > 0 ? <MesLoockLike text={faqMessage.text}/> : ''}
+                      {faqMessage.text.length > 0 ? <MesLoockLike text={faqMessage.text}/> : null}
                   </div>
                   <div className="modal-footer">
                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>

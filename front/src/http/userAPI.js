@@ -1,7 +1,5 @@
 import {$authHost, $host} from "./index"
 import jwtDecode from "jwt-decode"
-import { useContext } from "react"
-import { Context } from ".."
 
 export const regServ = async (login, email, pass) => {
     const {data} = await $host.post('user/userReg', {
@@ -75,4 +73,9 @@ export const deleteUser = async (id) => {
 export const selectUsersStaffAct = async () => {
     const users = await $authHost.get('/user/selectUsersStaff')
     return users.data
+}
+
+export const searchUsersAct = async (str, limit = 10) => {
+    const result = await $authHost.get('/user/searchUsers?str=' + str + '&limit=' + limit)
+    return result
 }

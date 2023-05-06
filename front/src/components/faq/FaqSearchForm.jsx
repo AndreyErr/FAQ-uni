@@ -5,7 +5,7 @@ function FaqSearchForm(props){
         <div>
             <div className="input-group mb-3">
                 <input value={props.searchStr} onChange={e => props.search(e.target.value)} id="search" type="text" className="form-control" placeholder="Ваш вопрос" aria-label="Ваш вопрос" aria-describedby="button-addon2"></input>
-                {props.searchStr != '' ? <button onClick={() => {props.setSearchStr('')}} className="btn btn-light" type="button" id="button-addon2">Отчистить</button> : ''}
+                {props.searchStr != '' ? <button onClick={() => {props.setSearchStr('')}} className="btn btn-light" type="button" id="button-addon2">Отчистить</button> : null}
             </div>
         </div>
     );

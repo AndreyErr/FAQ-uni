@@ -15,14 +15,20 @@ function MesForm(props){
   
   const fileInputV = document.getElementById("formFile");
   window.addEventListener('paste', e => {
-    if(fileInput.file !== null){
-      if(fileInput.file.name != e.clipboardData.files[0].name){
-        fileInputV.files = e.clipboardData.files;
-        handleFileInputChange(fileInputV.files)
+    if(e.clipboardData.files){
+      try{
+        if(fileInput.file !== null){
+          if(fileInput.file.name != e.clipboardData.files[0].name){
+            fileInputV.files = e.clipboardData.files;
+            handleFileInputChange(fileInputV.files)
+          }
+        }else{
+          fileInputV.files = e.clipboardData.files;
+          handleFileInputChange(fileInputV.files)
+        }
+      }catch(e){
+
       }
-    }else{
-      fileInputV.files = e.clipboardData.files;
-      handleFileInputChange(fileInputV.files)
     }
   })
 
@@ -43,27 +49,33 @@ function MesForm(props){
   async function addMessage(file = false){
     try{
       await addMessageAct(props.id, message, 0, file).then((result) => {
+        const token = localStorage.getItem('token')
         if(file === true){addFiles(result.messageid).then((resultFile) => {
           if(resultFile !== 'NOK'){
             props.create(result)
             setFileInput({file:null, filePreview:null})
+            socket.emit('newMessage',{
+              token: token,
+              messageId: result.messageid,
+              dialogId: result.dialogid,
+              finFlag: 0  
+            })
           }
         })}else{
           props.create(result)
+          socket.emit('newMessage',{
+            token: token,
+            messageId: result.messageid,
+            dialogId: result.dialogid,
+            finFlag: 0  
+          })
         }
-        const token = localStorage.getItem('token')
-        socket.emit('newMessage',{
-          token: token,
-          messageId: result.messageid,
-          dialogId: result.dialogid,
-          finFlag: 0  
-        })
         setMessage('')
+        props.setError([])
       })
     }catch(e){
       let massageErr = e.response.data.message
       props.setError(massageErr)
-      console.log(e)
     }
   }
 
@@ -91,7 +103,6 @@ function MesForm(props){
     }catch(e){
       let massageErr = e.response.data.message
       props.setError(massageErr)
-      console.log(e)
     }
   }
 
@@ -106,7 +117,6 @@ function MesForm(props){
     }catch(e){
       let massageErr = e.response.data.message
       props.setError(massageErr)
-      console.log(e)
       return 'NOK'
     }
   }
@@ -121,16 +131,17 @@ function MesForm(props){
     <div className="p-4 mb-3 bg-light rounded">
       {props.error.length > 0
       ? <MessageText text={props.error} typeOf={'danger'} /> 
-      : ''}
+      : null}
       <h4 className="fst-italic text-black">Сообщение</h4>
+        {props.id === 'new' ? <span className="form-text text-black">Введите первое сообщение и добавьте к нему картинку по необходимости</span> : null}
           <div className="mb-3">
               <textarea className="form-control" id="message" value={message} onChange={e => setMessage(e.target.value)} rows="3"></textarea>
               <div id="emailHelp" className="form-text">Вы можете использовать md разметку.</div>
           </div>
           <div className="mb-3">
-            <div class="btn-group">
-              <label class="btn btn-outline-primary">
-                  Вставить картинку в сообщение
+            <div className="btn-group">
+              <label className="btn btn-outline-primary btn-sm">
+                  {fileInput.filePreview !== null ? 'Заменить картинку в сообщении' : 'Вставить картинку в сообщение'}
                   <input className="form-control" accept="image/*,.png,.jpg" type="file" id="formFile" name="upload_file" onChange={e => {handleFileInputChange(e.target.files)}} hidden></input>
               </label>
               {fileInput.filePreview !== null 
@@ -143,7 +154,7 @@ function MesForm(props){
           ? <a href={fileInput.filePreview} target="_blank"><img src={fileInput.filePreview} className="rounded mx-auto d-block" style={{'maxWidth': '40%'}}/></a>
           : null}
           <button type="submit" onClick={() => {addNewMessageAct()}} className="btn btn-primary">Отправить</button>
-          {message.length > 0 ? <MesLoockLike text={message}/> : ''}
+          {message.length > 0 ? <MesLoockLike text={message}/> : null}
     </div>
   );
 }

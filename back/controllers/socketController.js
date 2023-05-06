@@ -4,8 +4,7 @@ class socketController {
 
     selectAction(io, socket) {
         socket.on('newChatFor', (data) => {
-            console.log(data)
-            selectDialogById(data.idChat).then((result) => {
+            selectDialogById(data.idChat, null, 'FROM_SERVER').then((result) => {
                 io.emit('newChatFor' + data.idUser, {
                     data: result
                 })
@@ -32,7 +31,6 @@ class socketController {
             })
         })
         socket.on('notification', (data) => {
-            console.log(data)
             io.emit('notificationFor' + data.dialogid, {
                 notification: data.notification
             })

@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../..";
-import MesDialogsLayoutMenu from "./messages/MesDialogsLayoutMenu";
 import ScrollButton from "./ScrollButton";
 
 function AuMenu(props){
@@ -14,50 +13,49 @@ function AuMenu(props){
             <hr></hr>
             <ul className="nav nav-pills flex-column mb-auto">
                 <li className="hoverLink">
-                    <Link to="/me" className={`nav-link text-white ${props.active === 'me' ? 'active' : ''}`} aria-current="page">
+                    <Link to="/me" className={`nav-link text-white ${props.active === 'me' ? 'active' : null}`} aria-current="page">
                         <i className="fa-solid fa-user pe-none me-2"></i>Я
                     </Link>
                 </li>
                 {user.user['status'] === 4 || user.user['status'] === 5 ?
                 <li className="hoverLink">
-                    <Link to="/users" className={`nav-link text-white ${props.active === 'users' ? 'active' : ''}`}>
+                    <Link to="/users" className={`nav-link text-white ${props.active === 'users' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Аккаунты
                     </Link>
                 </li>
-                : ''}
+                : null}
                 {user.user['status'] === 4 || user.user['status'] === 5 ?
                 <li className="hoverLink">
-                    <Link to="/FAQs_check" className={`nav-link text-white ${props.active === 'FAQs_check' ? 'active' : ''}`}>
+                    <Link to="/FAQs_check" className={`nav-link text-white ${props.active === 'FAQs_check' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>FAQs на проверку
                     </Link>
                 </li>
-                : ''}
+                : null}
                 <li className="hoverLink">
-                    <Link to="/chat" className={`nav-link text-white ${props.active === 'chat' ? 'active' : ''}`}>
+                    <Link to="/chat" className={`nav-link text-white ${props.active === 'chat' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Чаты
                     </Link>
                 </li>
                 {user.user['status'] === 4 || user.user['status'] === 5 ?
                 <li className="hoverLink">
-                    <Link to="/chat/all" className={`nav-link text-white ${props.active === 'chatall' ? 'active' : ''}`}>
+                    <Link to="/chat/all" className={`nav-link text-white ${props.active === 'chatall' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Все активные чаты
                     </Link>
                 </li>
-                : ''}
+                : null}
                 <li className="hoverLink">
-                    <Link to="/history" className={`nav-link text-white ${props.active === 'history' ? 'active' : ''}`}>
+                    <Link to="/history" className={`nav-link text-white ${props.active === 'history' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>История
                     </Link>
                 </li>
                 {user.user['status'] === 4 || user.user['status'] === 5 ?
                 <li className="hoverLink">
-                    <Link to="/history/all" className={`nav-link text-white ${props.active === 'historyall' ? 'active' : ''}`}>
+                    <Link to="/history/all" className={`nav-link text-white ${props.active === 'historyall' ? 'active' : null}`}>
                         <i className="fa-solid fa-user pe-none me-2"></i>Вся история
                     </Link>
                 </li>
-                : ''}
+                : null}
             </ul>
-            {/* <MesDialogsLayoutMenu /> */}
             <div className="mt-3 d-grid gap-2"><ScrollButton /></div>
         </div>
     );

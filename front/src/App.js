@@ -4,12 +4,7 @@ import Footer from "./components/footer/Footer";
 import Header from './components/header/Header';
 import MainPageLayout from "./components/mainPage/MainPageLayout";
 import {
-  BrowserRouter,
-  Switch,
   Route,
-  Link,
-  useRouteMatch,
-  useParams,
   Routes,
 } from 'react-router-dom';
 import FaqTopicPageLayout from "./components/faq/FaqTopicPageLayout";
@@ -19,8 +14,6 @@ import AuPageLayout from "./components/authorized/AuPageLayout";
 import { observer } from "mobx-react-lite";
 import { Context } from ".";
 import { check } from "./http/userAPI";
-import Loader from "./components/ui/Loader";
-import Loader2 from "./components/ui/Loader2";
 import LoaderPage from "./components/ui/LoaderPage";
 
 
@@ -54,27 +47,27 @@ const App = observer( () => {
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/users" element={user.isAuth ? <AuPageLayout type={'users'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/FAQs_check" element={user.isAuth ? <AuPageLayout type={'FAQs_check'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/history/all" element={user.isAuth ? <AuPageLayout type={'historyall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/history/all/:chatId" element={user.isAuth ? <AuPageLayout type={'historyall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/chat/all" element={user.isAuth ? <AuPageLayout type={'chatall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           {user.user['status'] === 4 || user.user['status'] === 5 
           ?
             <Route path="/chat/all/:chatId" element={user.isAuth ? <AuPageLayout type={'chatall'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
-          : '' }
+          : null }
           <Route path="/history" element={user.isAuth ? <AuPageLayout type={'history'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           <Route exact path="/history/:chatId" element={user.isAuth ? <AuPageLayout type={'history'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           <Route exact path="/chat" element={user.isAuth ? <AuPageLayout type={'chat'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />

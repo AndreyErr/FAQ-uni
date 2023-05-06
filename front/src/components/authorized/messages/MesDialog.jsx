@@ -33,11 +33,9 @@ function MesDialog(props){
   
   socket.off('notificationFor' + props.data.dialogid)
   socket.on('notificationFor' + props.data.dialogid, (data) => {
-    console.log('АХУЕТЬ 2.4 NCHATS ->', data)
     if(props.type == 'chatall' || props.data.ansuser === user.user['id']){
       if(data.notification === 'NOT_READY_FOR_DIALOG'){
         setReadStatus('bg-danger bg-opacity-20')
-        console.log('notificationFor111')
       }else if(data.notification === 'READY_FOR_DIALOG'){
         setReadStatus('')
       }
@@ -45,6 +43,7 @@ function MesDialog(props){
     if(props.type == 'chat'){
       if(data.notification === 'CHANGE_CHAT_FOR_ANS_USER' && props.data.ansuser === user.user['id']){
         props.setDialog(props.dialogs.filter(item => item.dialogid !== props.data.dialogid))
+        props.setDialogCount(props.dialogsCount - 1)
         socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
         socket.off('notificationFor' + props.data.dialogid)
       }
@@ -56,7 +55,6 @@ function MesDialog(props){
     
     socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
     socket.on('newMessageForDialogDIALOGS' + props.data.dialogid, (data) => {
-      console.log('АХУЕТЬ 2.1 ->', data)
       setDate(data.data.dateadd.substring(0, props.data.dateadd.length - 14))
       setTime(data.data.timeadd)
       if(data.dataDialog.dialogstatus === 0){
@@ -64,26 +62,19 @@ function MesDialog(props){
       }
       if(data.finFlag === 1){
         setReadStatus('bg-warning bg-opacity-10')
-        console.log(1000)
       }
       if(props.type == 'chat'){
         props.changeDialogPositionToTop(props.data.dialogid)
         if((data.data.fromuser === user.user['id'] && (data.finFlag === 8 || data.finFlag === 9)) || data.finFlag === 10){
           props.setDialog(props.dialogs.filter(item => item.dialogid !== data.data.dialogid))
           socket.off('newMessageForDialogDIALOGS' + props.data.dialogid)
-          console.log(1)
         }else if(data.finFlag === 8){
           setReadStatus('bg-success bg-opacity-50')
-          console.log(2)
         }else if(data.finFlag === 9){
           setReadStatus('bg-danger bg-opacity-50')
-          console.log(3)
         }else if(data.dataDialog.ansuser !== data.data.fromuser && data.dataDialog.askuser !== data.data.fromuser && data.dataDialog.ansuser === user.user['id'] && data.finFlag != 10){
-          console.log(data.dataDialog.ansuser !== data.data.fromuser && data.dataDialog.askuser !== data.data.fromuser && data.dataDialog.ansuser === user.user['id'] && data.finFlag != 10)
-          console.log(4)
           setReadStatus('bg-info bg-opacity-50')
         }else if(props.act == '' && data.finFlag != 10){
-          console.log(5)
           setReadStatus('bg-warning bg-opacity-50')
         }else if(data.finFlag !== 10){
           if(readStatus !== 'bg-info bg-opacity-50'){
@@ -96,7 +87,6 @@ function MesDialog(props){
 
     socket.off('readedDialog' + props.data.dialogid + user.user['id'])
     socket.on('readedDialog' + props.data.dialogid + user.user['id'], (data) => {
-      console.log('АХУЕТЬ 2.2 ->', data)
       selectDialogAct(props.data.dialogid).then((result) => {
         if(result.dialogstatus == 0){
           setReadStatus('')
@@ -125,8 +115,8 @@ function MesDialog(props){
           </strong>
           {props.data.dialogtype === 2 && user.user['status'] > 2 ? <small className="text-danger float-end"><i className="fa-solid fa-circle-dot"></i></small> : null}
           <br></br>
-        <small className="text-info">{date} {time} {user.user['status'] > 2 ? '|' : ''} </small>
-        <small className="text-secondary">{user.user['status'] > 2 ? props.data.dialogid : ''}</small>
+        <small className="text-info">{date} {time} {user.user['status'] > 2 ? '|' : null} </small>
+        <small className="text-secondary">{user.user['status'] > 2 ? props.data.dialogid : null}</small>
       </div>
     </div>
   </Link>

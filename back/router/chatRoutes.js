@@ -1,6 +1,5 @@
 const Router = require('express')
 const router = new Router()
-const {body} = require('express-validator')
 
 const chatController = require('../controllers/chatController')
 const authMiddleware = require('../middleware/authMiddleware')

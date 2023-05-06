@@ -16,16 +16,18 @@ function AuPageLayout(props){
   const [isTitlesLoading, setIsTitlesLoading] = useState(false)
 
   useEffect(() => {
-    setIsTitlesLoading(true)
-    setTimeout(() => {
-      fatchTitles().then((result) => {
-        setTitleTypes(result.data)
-        setIsTitlesLoading(false)
-      })
-  }, 0)
+    if(user.user['status'] > 2){
+      setIsTitlesLoading(true)
+      setTimeout(() => {
+        fatchTitles().then((result) => {
+          setTitleTypes(result.data)
+          setIsTitlesLoading(false)
+        })
+      }, 0)
+    }
   }, [])
 
-  socket.removeAllListeners() ///////////////////////////////////////////////////////////////
+  socket.removeAllListeners()
 
     return(
       <main>
@@ -41,19 +43,19 @@ function AuPageLayout(props){
               {user.user['status'] === 4 || user.user['status'] === 5 
               ?
               <FaqNewType titleT={titleTypes} isTitleLoad={isTitlesLoading} setTitleTypes={setTitleTypes}/>
-              : ''}
+              : null}
               {user.user['status'] === 3 || user.user['status'] === 4 || user.user['status'] === 5 
               ?
               <FaqNew titleT={titleTypes} isTitleLoad={isTitlesLoading}/>
-              : ''}
+              : null}
               <div>
-                {props.type === 'me' ? <AuAccaunt /> : ''}
-                {props.type === 'users' ? <AuUsers /> : ''}
-                {props.type === 'FAQs_check' ? <FaqsCheck /> : ''}
-                {props.type === 'chat' ? <AuMessagesLayout type={props.type} /> : ''}
-                {props.type === 'history' ? <AuMessagesLayout type={props.type} /> : ''}
-                {props.type === 'historyall' ? <AuMessagesLayout type={props.type} /> : ''}
-                {props.type === 'chatall' ? <AuMessagesLayout type={props.type} /> : ''}
+                {props.type === 'me' ? <AuAccaunt /> : null}
+                {props.type === 'users' ? <AuUsers /> : null}
+                {props.type === 'FAQs_check' ? <FaqsCheck /> : null}
+                {props.type === 'chat' ? <AuMessagesLayout type={props.type} /> : null}
+                {props.type === 'history' ? <AuMessagesLayout type={props.type} /> : null}
+                {props.type === 'historyall' ? <AuMessagesLayout type={props.type} /> : null}
+                {props.type === 'chatall' ? <AuMessagesLayout type={props.type} /> : null}
                </div>
             </div>
           </div>

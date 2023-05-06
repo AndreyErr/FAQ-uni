@@ -1,9 +1,4 @@
-import {$authHost, $host} from "./index"
-import jwtDecode from "jwt-decode"
-import { useContext } from "react"
-import { Context } from ".."
-import { io } from "socket.io-client"
-import socket from "./socket"
+import {$authHost} from "./index"
 
 export const addDialogByClientAct = async (id, message, file) => {
     const data = await $authHost.post('chat/addDialogByClient', {
@@ -28,7 +23,6 @@ export const selectDialogAct = async (dialogid) => {
 }
 
 export const addMessageAct = async (dialogid, message, finFlag = 0, file = false) => {
-    console.log('file '+file)
     const data = await $authHost.post('chat/addMessage', {
         dialogid: dialogid,
         message: message,

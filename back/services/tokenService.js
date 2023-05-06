@@ -1,4 +1,3 @@
-const pgdb = require('../pgdb')
 const jwt = require('jsonwebtoken')
 
 class tokenService {
@@ -7,7 +6,7 @@ class tokenService {
         payload = {
             data: payload
         }
-        const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn: '10d'})
+        const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn: '3d'})
         return {accessToken}
     }
 

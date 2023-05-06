@@ -44,16 +44,25 @@ class chatService {
         }
     }
 
-    async selectDialogById(dialogid, token){
+    async selectDialogById(dialogid, token, flag){
         const data = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE dialogid = $1', [dialogid])
+        if(flag === 'FROM_CLIENT'){
+            const decoded = tokenService.validateToken(token)
+            if(decoded.data.status < 4 && data.rows[0]['askuser'] != decoded.data.id && data.rows[0]['ansuser'] != decoded.data.id){
+                throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
+            }
+        }
         return data.rows[0]
     }     
 
     async addDialogByClient(id, message, file, token){
         const decoded = tokenService.validateToken(token)
-        // if(id != decoded.data.id){
-        //     throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
-        // }
+        if(typeof file !== "boolean"){
+            throw apiError.BadRequest('WRONG_DATA_TYPE', `Неправильный тип данных`)
+        }
+        if(message.replace(/\s/g, '') < 2){
+            throw apiError.BadRequest('NO_FIRST_MESSAGE', `Напишите первое сообщение`)
+        }
         if(decoded.data.status < 3){
             const countUserChats = await pgdb.query('SELECT COUNT(dialogid) AS count FROM dialogs WHERE askuser = $1 AND dialogstatus = 0', [id])
             if(Number(countUserChats.rows[0]['count']) >= process.env.CHATS_ON_AIR){
@@ -84,25 +93,31 @@ class chatService {
         }else{
             dialogType = 3
         }
-        await this.finChatsWithTime()
-        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date, localtime(0), $3, 0, 1) RETURNING *', [id, selectUserId, dialogType])
-        const messageFirst = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date, localtime(0), $3, $4) RETURNING *', [message, id, dialogaded.rows[0]['dialogid'], file])
+        await this.finChatsWithTime() ///////
+        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date + 1, localtime(0), $3, 0, 1) RETURNING *', [id, selectUserId, dialogType])
+        const messageFirst = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date + 1, localtime(0), $3, $4) RETURNING *', [message, id, dialogaded.rows[0]['dialogid'], file])
         const dialog = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE dialogid = $1', [dialogaded.rows[0]['dialogid']])
         return [dialog.rows[0], messageFirst.rows[0]]
     }
 
     async finChatsWithTime(){
-        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus = 0 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date - interval '5 days'")
+        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus = 0 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date + 1 - interval '5 days'")
         if(dialogs.rowCount > 0){
             let index = 0
                 for (index = 0; index < dialogs.rowCount; ++index) {
-                    await pgdb.query("INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ('##### Чат закрыт системой из-за отсутствия активности в течении 20 дней!', -1, current_date, localtime(0), $1)", [dialogs.rows[index]['dialogid']])
+                    await pgdb.query("INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ('##### Чат закрыт системой из-за отсутствия активности в течении 20 дней!', -1, current_date + 1, localtime(0), $1)", [dialogs.rows[index]['dialogid']])
                     await pgdb.query("UPDATE dialogs SET dialogstatus = 10 WHERE dialogid = $1", [dialogs.rows[index]['dialogid']])
                 }
             }
         }
 
     async addMessage(dialogid, message, token, finFlag, file){
+        if(typeof file !== "boolean"){
+            throw apiError.BadRequest('WRONG_DATA_TYPE', `Неправильный тип данных`)
+        }
+        if(file === false && message.replace(/\s/g, '') < 1){
+            throw apiError.BadRequest('NO_MESSAGE_OR_FILE', `Напишите сообщение или отправьте файл`)
+        }
         const decoded = tokenService.validateToken(token)
         const aboutDialog = await pgdb.query('SELECT askuser, ansuser, dialogstatus FROM dialogs WHERE dialogid = $1', [dialogid])
         if(aboutDialog.rows[0]['askuser'] != decoded.data.id && aboutDialog.rows[0]['ansuser'] != decoded.data.id && decoded.data.status < 4){
@@ -110,7 +125,7 @@ class chatService {
         }else if(((aboutDialog.rows[0]['dialogstatus'] == 8 || aboutDialog.rows[0]['dialogstatus'] == 9) && aboutDialog.rows[0]['ansuser'] != decoded.data.id) || aboutDialog.rows[0]['dialogstatus'] == 10){
             throw apiError.BadRequest('HISTORI', `Чат является историей и его нельзя изменить`)
         }
-        const data = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date, localtime(0), $3, $4) RETURNING *', [message, decoded.data.id, dialogid, file])
+        const data = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date + 1, localtime(0), $3, $4) RETURNING *', [message, decoded.data.id, dialogid, file])
         let dalogStatus = aboutDialog.rows[0]['dialogstatus']
         let needtoread = 1
         if(finFlag == 10){
@@ -145,7 +160,6 @@ class chatService {
     async selectDataByMessageId(messageId, token, dialogId){
         const decoded = tokenService.validateToken(token)
         const dialogData = await pgdb.query('SELECT askuser, ansuser, dialogstatus FROM dialogs WHERE dialogid = $1', [dialogId])
-
         if(dialogData.rows[0]['askuser'] != decoded.data.id && dialogData.rows[0]['ansuser'] != decoded.data.id  && decoded.data.status < 4){
             throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
         }
@@ -173,6 +187,7 @@ class chatService {
         await pgdb.query('DELETE FROM dialogs WHERE dialogid = $1', [dialogid])
         await pgdb.query('DELETE FROM messages WHERE dialogid = $1', [dialogid])
         fs.rmSync('./files/chats/'+dialogid, {recursive: true, force: true})
+        await this.finChatsWithTime() ///////
         return 'OK'
     }
 
@@ -191,7 +206,9 @@ class chatService {
 
     async changeAnsUser(dialogid, ansuserid, token){
         const decoded = tokenService.validateToken(token)
-        if(decoded.data.status < 4){
+        const aboutDialog = await pgdb.query('SELECT ansuser FROM dialogs WHERE dialogid = $1', [dialogid])
+        const user = await pgdb.query('SELECT status FROM users WHERE user_id = $1', [aboutDialog.rows[0]['ansuser']])
+        if(decoded.data.status < 4 || (decoded.data.status < user.rows[0]['status'])){
             throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
         }
         await pgdb.query('UPDATE dialogs SET ansuser = $2, needtoread = 1, dialogstatus = 0 WHERE dialogid = $1', [dialogid, ansuserid])
@@ -199,7 +216,14 @@ class chatService {
     }
 
     async fileUpload(file, messageId, token){
+        const decoded = tokenService.validateToken(token)
         const data = await pgdb.query('SELECT dialogid FROM messages WHERE messageid = $1 ORDER BY messageid DESC LIMIT 1', [messageId])
+        const aboutDialog = await pgdb.query('SELECT askuser, ansuser, dialogstatus FROM dialogs WHERE dialogid = $1', [data.rows[0]['dialogid']])
+        if(aboutDialog.rows[0]['askuser'] != decoded.data.id && aboutDialog.rows[0]['ansuser'] != decoded.data.id && decoded.data.status < 4){
+            throw apiError.BadRequest('NOT_ACCESS', `Нет доступа`)
+        }else if(((aboutDialog.rows[0]['dialogstatus'] == 8 || aboutDialog.rows[0]['dialogstatus'] == 9) && aboutDialog.rows[0]['ansuser'] != decoded.data.id) || aboutDialog.rows[0]['dialogstatus'] == 10){
+            throw apiError.BadRequest('HISTORI', `Чат является историей и его нельзя изменить`)
+        }
         if(!file){
             throw apiError.BadRequest('NOT_FILE', `Нет файла`)
         }
@@ -213,11 +237,9 @@ class chatService {
         }
         fs.access('./files/chats/'+data.rows[0]['dialogid'], function(err) {
           if (err && err.code === 'ENOENT') {
-            console.log(err)
             fs.mkdirSync('./files/chats/'+data.rows[0]['dialogid']); //Create dir in case not found
           }
           const type = file.name.split('.').pop()
-          console.log(type)
           if(fs.existsSync('./files/chats/'+data.rows[0]['dialogid']+'/'+messageId+'.'+type)){
             throw apiError.BadRequest('FILE_EXIST', `Файл существует`)
           }

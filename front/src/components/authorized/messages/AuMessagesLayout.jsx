@@ -1,11 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
-import MesDialog from "./MesDialog";
-import MesNew from "./MesNew";
-import { addDialogByClientAct, selectDialogs } from "../../../http/chatAPI";
+import { selectDialogs } from "../../../http/chatAPI";
 import { Context } from "../../..";
 import MesChatLayout from "./chat/MesChatLayout";
 import MesDialogsLayout from "./MesDialogsLayout";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import socket from "../../../http/socket";
 import Loader from "../../ui/Loader";
 
@@ -46,7 +44,6 @@ function AuMessagesLayout(props){
             })
         }, 0)
         }catch(e){
-            console.log(e)
             setDialogLoading(false)
         }
     }, [])
@@ -57,13 +54,11 @@ function AuMessagesLayout(props){
             setDialog([data.data, ...dialogs])
             setDialogNull(false)
             setDialogCount(Number(dialogsCount) + 1)
-            console.log('АХУЕТЬ ->', data)
         })
     }
     if(props.type == 'chatall'){
         socket.off('newChat')
         socket.on('newChat', (data) => {
-            console.log(data)
             setDialog([data.data, ...dialogs])
             setDialogNull(false)
             setDialogCount(Number(dialogsCount) + 1)
@@ -104,14 +99,14 @@ function AuMessagesLayout(props){
             <div className={`col-md-${DialogsLayout()}`}>
                 {dialogsLoading 
                 ? <div className="p-4 mb-3 bg-secondary rounded  z-index-1"><span className="fs-4">Диалоги</span><br></br><Loader /></div>
-                : <MesDialogsLayout type={props.type} dialogsCount={dialogsCount} dialogs={dialogs} setDialog={setDialog} dialogsNull={dialogsNull} changeDialogPositionToTop={changeDialogPositionToTop} addPageWithDialogs={addPageWithDialogs} dialogsLimit={dialogsLimit} page={page}/>
+                : <MesDialogsLayout type={props.type} dialogsCount={dialogsCount} setDialogCount={setDialogCount} dialogs={dialogs} setDialog={setDialog} dialogsNull={dialogsNull} changeDialogPositionToTop={changeDialogPositionToTop} addPageWithDialogs={addPageWithDialogs} dialogsLimit={dialogsLimit} page={page}/>
                 }
             </div>
             {params.chatId
             ?   <div className="col-md-9">
                     <MesChatLayout type={props.type} setDialogCount={setDialogCount} dialogsCount={dialogsCount} dialogs={dialogs} dialogsLoading={dialogsLoading} setDialog={setDialog} setDialogNull={setDialogNull}/>
                 </div>
-            : ''
+            : null
             }
         </div>
     );

@@ -4,7 +4,7 @@ import FaqCardHolder from "./FaqCardHolder";
 import FaqSearchForm from "./FaqSearchForm";
 import FaqSearchResult from "./FaqSearchResult";
 import { deleteFaq, fatchTitles, searchFaq, selectAllFaqs } from "../../http/faqAPI";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Loader from "../ui/Loader";
 import MessageToastContainer from "../ui/MessageToastContainer";
 import LoaderPage from "../ui/LoaderPage";
@@ -34,7 +34,6 @@ if(props.blockCount){blockCount = props.blockCount}
 if(props.pageId){pageId = props.pageId}
 
 useEffect(() => {
-    document.title = 'FAQs';
     try{
     setIsFaqsLoading(true)
     setIsPageLoading(true)
@@ -77,8 +76,6 @@ async function dFaq (id) {
             setIsPageLoading(false)
         }
     }catch(e){
-        let massageErr = e.response.data.message
-        setStat([massageErr, ...stat])
         setIsPageLoading(false)
     }
 }
@@ -88,7 +85,7 @@ function search(str){
     if(searchTimeout != false){
         clearTimeout(searchTimeout)
     }
-    if(str != ''){
+    if(str != '' && str.length <= 300){
         setSearchLoader(true)
         setSearchTimeout(setTimeout(() => {
             try{
@@ -97,13 +94,13 @@ function search(str){
                     setSearchLoader(false)
                 })
             }catch(e){
-                let massageErr = e.response.data.message
-                setStat([massageErr, ...stat])
+                setSearchFaqs('null')
                 setSearchLoader(false)
             }
         }, 500))
     }else{
-        setSearchFaqs([])
+        setSearchFaqs('null')
+        setSearchLoader(false)
     }
 }
 
@@ -137,12 +134,12 @@ function faqTitleShow(){
         <div className="container">
             {stat.length > 0 
             ? <MessageToastContainer messages={stat} />
-            : ''}
+            : null}
             {pageLoading 
             ? <LoaderPage />
-            : ''}
+            : null}
             <div className="row mb-6 text-center px-4 py-5">
-                <h2 className="pb-2">{faqsLoading ? <Loader /> : ''}{type !== 'uncheck' ? 'База знаний' : ''}</h2>
+                <h2 className="pb-2">{faqsLoading ? <Loader /> : null}{type !== 'uncheck' ? 'База знаний' : null}</h2>
                 {faqTitleShow()}
                 {ifNoFaqs 
                 ? ''

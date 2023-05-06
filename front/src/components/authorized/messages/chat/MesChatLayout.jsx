@@ -26,6 +26,7 @@ function MesChatLayout(props){
   const [countAllMes, setCountAllMes] = useState(0);
   const [abilityToTalk, setAbilityToTalk] = useState(true);
   const [error, setError] = useState('')
+  const [usersIsLoading, setUsersIsLoading] = useState(true)
 
   const [usersToChange, setUsersToChange] = useState([]);
 
@@ -85,14 +86,15 @@ function MesChatLayout(props){
               setMessageLoader(false)
           })
           if(user.user['status'] > 3){
+            setUsersIsLoading(true)
             selectUsersStaffAct().then((result) => {
               setUsersToChange(result)
+              setUsersIsLoading(false)
             })
           }
         }
       }, 0)
     }catch(e){
-        console.log(e)
         setMessageLoader(false)
         if(dialogType == 'chat'){
           history('/chat')
@@ -118,18 +120,20 @@ function MesChatLayout(props){
   }
 
   async function changeAnsUser(id){
+    setUsersIsLoading(true)
     const idUser = Number(id)
     changeAnsUserAct(params.chatId, idUser).then((result) => {
-      setUsersInDialog([usersInDialog[1], idUser])
       socket.emit('newChatFor',{
         idUser: idUser,   
-        idChat: params.chatId   ,
+        idChat: params.chatId,
         changeUser: true   
       })
       socket.emit('notification',{
         dialogid: params.chatId,
         notification: "CHANGE_CHAT_FOR_ANS_USER"
     })
+    setUsersInDialog([usersInDialog[1], idUser])
+    setUsersIsLoading(false)
     })
   }
 
@@ -152,7 +156,6 @@ function MesChatLayout(props){
         if(data.finFlag == 8 || data.finFlag == 9){
           setDialogFin(1)
         }
-        console.log('АХУЕТЬ 2.0 ->', data)
       }
       if(data.dataDialog.dialogstatus === 0){
         setAbilityToTalk(true)
@@ -167,21 +170,25 @@ function MesChatLayout(props){
       return <div> {/*className="sticky-top" style={{top: '91px'}}*/}
       {user.user['status'] > 3 && dialogType == 'chatall' && dialogFin != 1 && dialogFin != 2
       ? <div className="p-4 mb-3 bg-light rounded">
-          <select value={usersInDialog[1]} onChange={e => changeAnsUser(e.target.value)} class="form-select" size="3" aria-label="size 3 select example">
+        {usersIsLoading 
+        ? <Loader /> 
+        : 
+          <select value={usersInDialog[1]} onChange={e => changeAnsUser(e.target.value)} className="form-select" size="3" aria-label="size 3 select example">
             {usersToChange.map(user => 
               <option key={user.user_id} value={user.user_id}>{user.login} ({user.status_text})</option>
             )}
           </select>
+        }
          </div>
-      : ''}
-      {user.user['status'] === 3 && dialogFin != 1 && dialogFin != 2 && dialogType == 'chat' ? abilityToTalk === true ? <HelpStatus id={params.chatId} type={'help'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : <HelpStatus id={params.chatId} type={'iCanDoIt'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : ''}
+      : null}
+      {user.user['status'] === 3 && dialogFin != 1 && dialogFin != 2 && dialogType == 'chat' ? abilityToTalk === true ? <HelpStatus id={params.chatId} type={'help'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : <HelpStatus id={params.chatId} type={'iCanDoIt'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} setAbilityToTalk={setAbilityToTalk} /> : null}
       {((params.chatId == 'new' && props.dialogsCount < 5) || dialogExist > -1) && (dialogType == 'chat' || dialogType == 'chatall') && dialogFin != 1 && dialogFin != 2
       ? <MesForm error={error} type={dialogType}  setError={setError} create={createMessage} dialogs={props.dialogs} setDialog={props.setDialog} id={params.chatId} setDialogNull={props.setDialogNull} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} />
       : params.chatId == 'new' 
         ? <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Вы достигли максимально доступное кол-во онлайн чатов! Общайтесь в тех, что уже есть!</h4></div> 
         : (dialogType == 'chat') && dialogFin != 1
           ? <div className="p-4 mb-3 bg-light rounded"><h4 className="fst-italic text-black">Не найдено</h4></div> 
-          : ''
+          : null
       }
       {params.chatId != 'new' && dialogExist > -1 ? (
         <div>
@@ -191,12 +198,12 @@ function MesChatLayout(props){
                 <button type="button" onClick={() => {deleteDialog()}} className="btn btn-danger">Удалить чат!</button>
               </div>
              </div>
-          : ''}
-          {user.user['status'] < 3 && countAllMes > 1 && lastUserAddMessage != user.user['id'] && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'user'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : ''}
-          {user.user['status'] >= 3 && (dialogFin == 1) && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'fin'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : ''}
+          : null}
+          {user.user['status'] < 3 && countAllMes > 1 && lastUserAddMessage != user.user['id'] && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'user'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : null}
+          {user.user['status'] >= 3 && (dialogFin == 1) && dialogType == 'chat' ? <HelpStatus id={params.chatId} type={'fin'} setDialogCount={props.setDialogCount} dialogsCount={props.dialogsCount} /> : null}
           <MesChat messages={messages} messagesLoader={messagesLoader} page={page} messLimit={messLimit} countAllMes={countAllMes} addPageWithMessages={addPageWithMessages}/>
         </div>
-      ) : ''}
+      ) : null}
     </div>
     }
   }

@@ -5,6 +5,10 @@ const apiError = require('../exceptions/apiError')
 class faqService {
 
     async addTypeTitleServ(title){
+        const reTitle = /^[a-zA-Z0-9\u0400-\u04FF\s]+$/i;
+        if(!String(title).toLocaleLowerCase().match(reTitle)){
+            throw apiError.BadRequest('VALID_ERROR', `Ошибка валидации данных`)
+        }
         const candidate = await pgdb.query('SELECT title FROM faqtype WHERE title = $1', [title])
         if(candidate.rowCount > 0){
             throw apiError.BadRequest('FAQ_TYPE_EXIST', `Тип ${title} уже существует`)
@@ -43,13 +47,21 @@ class faqService {
         if(decoded.data.status < 4){
             check = -1
         }
-        const exit = await pgdb.query('INSERT INTO faq (useradd, usercheck, typeoffaq, dateadd, timeadd, qwest, ans, likes, dislikes, qwest_text_vector) values ($1, $5, $2, current_date, localtime(0), $3, $4, 0, 0, to_tsvector($3)) RETURNING *', [decoded.data.id, title, q, a, check])
+        const reAsk = /^[a-zA-Z0-9\u0400-\u04FF\s!@#$%^&*?]+$/i;
+        if(!String(q).toLocaleLowerCase().match(reAsk)){
+            throw apiError.BadRequest('VALID_ERROR', `Ошибка валидации данных`)
+        }
+        const exit = await pgdb.query('INSERT INTO faq (useradd, usercheck, typeoffaq, dateadd, timeadd, qwest, ans, likes, dislikes, qwest_text_vector) values ($1, $5, $2, current_date + 1, localtime(0), $3, $4, 0, 0, to_tsvector($3)) RETURNING *', [decoded.data.id, title, q, a, check])
         return exit.rows[0]
     }
 
     async faqUpdate(id, title, q, a, token){
+        const reAsk = /^[a-zA-Z0-9\u0400-\u04FF\s!@#$%^&*?]+$/i;
+        if(!String(q).toLocaleLowerCase().match(reAsk)){
+            throw apiError.BadRequest('VALID_ERROR', `Ошибка валидации данных`)
+        }
         const decoded = tokenService.validateToken(token)
-        await pgdb.query('UPDATE faq SET usercheck = $1, typeoffaq = $2, dateadd = current_date, timeadd = localtime(0), qwest = $3, ans = $4, qwest_text_vector = to_tsvector($3) WHERE faqid = $5', [decoded.data.id, title, q, a, id])
+        await pgdb.query('UPDATE faq SET usercheck = $1, typeoffaq = $2, dateadd = current_date + 1, timeadd = localtime(0), qwest = $3, ans = $4, qwest_text_vector = to_tsvector($3) WHERE faqid = $5', [decoded.data.id, title, q, a, id])
         return "OK"
     }
 
@@ -69,7 +81,6 @@ class faqService {
         let exit = []
         if(type == 'uncheck'){
             const faqsByTitleArr = await pgdb.query('SELECT faqid, typeoffaq, dateadd, timeadd, qwest, ans, likes, dislikes, users1.login AS useradd, users2.login AS usercheck FROM faq LEFT JOIN users AS users1 ON faq.useradd = users1.user_id LEFT JOIN users AS users2 ON faq.usercheck = users2.user_id WHERE usercheck = -1 ORDER BY faqid DESC')
-            console.log(faqsByTitleArr.rows)
             if(faqsByTitleArr.rowCount > 0){
                 const exitFaqsByTitleArr = [-1, 'FAQs к проверке', faqsByTitleArr.rows]
                 exit.push(exitFaqsByTitleArr)
@@ -148,10 +159,11 @@ class faqService {
     }
 
     async searchFaq(str, limit){
+        if(str.length > 300){
+            throw apiError.BadRequest('BIG_SEARCH_QUERY', `Слишком большая строка запроса, сделайте её менее 300 символов`)
+        }
         str = str.trimEnd()
         const newStr = str.replace(/ /g, " | ")
-        //const exit = await pgdb.query("SELECT * FROM faq JOIN faqtype ON faqtype.faqtypeid = faq.typeoffaq WHERE qwest LIKE $1 LIMIT $2", ['%'+str+'%', limit])
-        // const exit = await pgdb.query("SELECT * FROM faq JOIN faqtype ON faqtype.faqtypeid = faq.typeoffaq WHERE to_tsvector(qwest) @@ to_tsquery($1) ORDER BY ts_rank(to_tsvector(qwest), to_tsquery($1)) DESC LIMIT $2", [str, limit])
         let take = await pgdb.query("SELECT faqid, typeoffaq, dateadd, timeadd, qwest, ans, likes, dislikes, users1.login AS useradd, users2.login AS usercheck, title FROM faq JOIN faqtype ON faqtype.faqtypeid = faq.typeoffaq LEFT JOIN users AS users1 ON faq.useradd = users1.user_id LEFT JOIN users AS users2 ON faq.usercheck = users2.user_id WHERE usercheck != -1 AND to_tsvector(lower(qwest)) @@ to_tsquery(lower($1)) ORDER BY ts_rank(to_tsvector(lower(qwest)), to_tsquery(lower($1))) DESC, (likes) DESC LIMIT $2", [newStr, limit])
         let prexit = take.rows
         let exit = []
@@ -164,7 +176,6 @@ class faqService {
             take = await pgdb.query("SELECT faqid, typeoffaq, dateadd, timeadd, qwest, ans, likes, dislikes, users1.login AS useradd, users2.login AS usercheck, title FROM faq JOIN faqtype ON faqtype.faqtypeid = faq.typeoffaq LEFT JOIN users AS users1 ON faq.useradd = users1.user_id LEFT JOIN users AS users2 ON faq.usercheck = users2.user_id WHERE usercheck != -1 AND faqid NOT IN ("+notForSearchId.join(',')+") AND lower(qwest) LIKE lower($1) ORDER BY (likes) DESC LIMIT $2", ['%'+str+'%', limit])
             exit = prexit.concat(take.rows)
         }
-        // SELECT to_tsvector(qwest) FROM faq WHERE to_tsvector(qwest) @@ to_tsquery('aaaaaaa') LIMIT 10
         if (exit.length > 0){
             return exit
         }else{

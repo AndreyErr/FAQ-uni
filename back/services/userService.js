@@ -2,13 +2,24 @@ const tokenService = require('../services/tokenService')
 const pgdb = require('../pgdb')
 const bcrypt = require('bcrypt')
 const apiError = require('../exceptions/apiError')
+const fs = require('fs')
 
 class userService {
     
     async createUser(login, email, pass){
-        const candidate = await pgdb.query('SELECT user_id FROM users WHERE login = $1', [login])
+        const reEmail = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+        const reLogin = /^[a-z0-9]+$/i;
+        const rePass = /^[a-zA-Z0-9!@#$%^&*]+$/i;
+        if(!String(email).toLocaleLowerCase().match(reEmail) || !String(login).toLocaleLowerCase().match(reLogin) || !String(pass).toLocaleLowerCase().match(rePass)){
+            throw apiError.BadRequest('VALID_ERROR', `Ошибка валидации данных`)
+        }
+        let candidate = await pgdb.query('SELECT user_id FROM users WHERE login = $1', [login])
         if(candidate.rowCount > 0){
-            throw apiError.BadRequest('USER_EXIST', `Пользователь с логином ${login} уже существует`)
+            throw apiError.BadRequest('USER_EXIST', `Пользователь с логином "${login}" уже существует`)
+        }
+        candidate = await pgdb.query('SELECT user_id FROM users WHERE email = $1', [email])
+        if(candidate.rowCount > 0){
+            throw apiError.BadRequest('USER_EXIST', `Пользователь с email "${email}" уже существует`)
         }
         const hashPass = await bcrypt.hash(pass, 15)
         const newPerson = await pgdb.query('INSERT INTO users (login, email, pass, status) values ($1, $2, $3, 1) RETURNING *', [login, email, hashPass])
@@ -19,6 +30,11 @@ class userService {
     }
 
     async loginUser(login, pass){
+        const reLogin = /^[a-z0-9]+$/i;
+        const rePass = /^[a-zA-Z0-9!@#$%^&*]+$/i;
+        if(!String(login).toLocaleLowerCase().match(reLogin) || !String(pass).toLocaleLowerCase().match(rePass)){
+            throw apiError.BadRequest('VALID_ERROR', `Ошибка валидации данных`)
+        }
         const candidate = await pgdb.query('SELECT * FROM users WHERE login = $1', [login])
         if(candidate.rowCount == 0){
             throw apiError.BadRequest('USER_NOT_EXIST', `Пользователь с логином ${login} не существует`)
@@ -162,9 +178,10 @@ class userService {
                 if(deletedUserDialogs.rows[index].askuser == -2 || deletedUserDialogs.rows[index].ansuser == -2){
                     await pgdb.query('DELETE FROM dialogs WHERE dialogid = $1', [deletedUserDialogs.rows[index].dialogid])
                     await pgdb.query('DELETE FROM messages WHERE dialogid = $1', [deletedUserDialogs.rows[index].dialogid])
+                    fs.rmSync('./files/chats/'+deletedUserDialogs.rows[index].dialogid, {recursive: true, force: true})
                 }else{
-                    await pgdb.query('UPDATE dialogs SET askuser = -2, dialogstatus = 4 WHERE dialogid = $1 AND askuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
-                    await pgdb.query('UPDATE dialogs SET ansuser = -2, dialogstatus = 4 WHERE dialogid = $1 AND ansuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
+                    await pgdb.query('UPDATE dialogs SET askuser = -2, dialogstatus = 10 WHERE dialogid = $1 AND askuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
+                    await pgdb.query('UPDATE dialogs SET ansuser = -2, dialogstatus = 10 WHERE dialogid = $1 AND ansuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
                     await pgdb.query('UPDATE messages SET fromuser = -2 WHERE dialogid = $1 AND fromuser = $2', [deletedUserDialogs.rows[index].dialogid, id])
                 }
             }
@@ -181,6 +198,15 @@ class userService {
         }
         const users = await pgdb.query('SELECT users.user_id, login, status, title AS status_text FROM users JOIN usersstatus ON users.status = usersstatus.usersstatusid WHERE status > 2 AND status <= $1 ORDER BY status, user_id DESC', [decoded.data.status])
         return users.rows
+    }
+
+    async searchUser(str, limit){
+        const exit = await pgdb.query("SELECT users.user_id, login, email, status, title AS status_text, probability_receiving_chat.prob AS prob FROM users JOIN usersstatus ON users.status = usersstatus.usersstatusid LEFT JOIN probability_receiving_chat ON users.user_id = probability_receiving_chat.user_id WHERE login LIKE $1 OR email LIKE $1 ORDER BY status DESC, user_id DESC LIMIT $2", ['%'+str+'%', limit])
+        if (exit.rowCount > 0){
+            return exit.rows
+        }else{
+            return 'null'
+        }
     }
 }
 

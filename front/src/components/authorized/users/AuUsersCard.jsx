@@ -1,9 +1,6 @@
 import React, { useContext, useState } from "react";
 import { Context } from "../../..";
-import MessageToastContainer from "../../ui/MessageToastContainer";
-import MessageToast from "../../ui/MessageToast";
 import { updateUserProbAct, updateUserStatusAct } from "../../../http/userAPI";
-import { selectConfigData } from "../../../http/anotherAPI";
 
 function AuUsersCard(props){
     const {user} = useContext(Context)
@@ -38,7 +35,6 @@ function AuUsersCard(props){
                 }
             })
         }catch(e){
-            console.log(e.response.data.message)
             let massageErr = e.response.data.message
             props.setStat([massageErr, ...props.stat])
         }
@@ -52,7 +48,6 @@ function AuUsersCard(props){
                 }
             })
         }catch(e){
-            console.log(e.response.data.message)
             let massageErr = e.response.data.message
             props.setStat([massageErr, ...props.stat])
         }
@@ -71,7 +66,9 @@ function AuUsersCard(props){
             }
         }else{
             return <div>
-                <button type="button" className="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target={`#deleteUs${props.data.user_id}`}>
+                {user.user['status'] === 5
+                ?   <span>
+                    <button type="button" className="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target={`#deleteUs${props.data.user_id}`}>
                   Удалить
                 </button>
                 <div className="modal fade" id={`deleteUs${props.data.user_id}`} tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -91,34 +88,32 @@ function AuUsersCard(props){
                     </div>
                   </div>
                 </div>
-                
-                {user.user['status'] === 5
-                ?   <span><select value={status} onChange={e => updateUserStatus(e.target.value)} id="status" className="form-select form-select-sm mt-2" aria-label=".form-select-lg example">
+                    <select value={status} onChange={e => updateUserStatus(e.target.value)} id="status" className="form-select form-select-sm mt-2" aria-label=".form-select-lg example">
                         {props.usersStatuses.map(status => 
-                            // <option key={status.usersstatusid} value={status.usersstatusid}>{status.title}</option>
                           (status.usersstatusid == 5 && user.user['login'] != props.mainLogin)? '' :<option key={status.usersstatusid} value={status.usersstatusid}>{status.title}</option>
                         )}
                     </select>
                     </span>
-                : ''
+                : null
                 }
-                {(user.user['status'] > 3 && status > 2) ? <select value={prob} onChange={e => changeProb(e.target.value)} id="prob" className="form-select form-select-sm mt-2" aria-label=".form-select-lg example">
+                {(user.user['status'] > 3 && status > 2) 
+                ? <select value={prob} onChange={e => changeProb(e.target.value)} id="prob" className="form-select form-select-sm mt-2" aria-label=".form-select-lg example">
                     {probabs.map(probb => 
                         <option key={probb.id} value={probb.value}>{probb.value}</option>
                     )}
-                </select> : ''}
+                </select> 
+                : user.user['status'] === 4 ? 'Нет действий' : null}
             </div>
         }
     }
+
     return(
         <tr>
             <th scope="row">{props.data.user_id}</th>
             <td>{props.data.login}</td>
-            <td>{textStatus} ({status})</td>
+            <td>{textStatus} ({status}) {props.data.email}</td>
             <td className="hstack gap-3">
                 {actions()}
-
-                {/* <button type="button" className="btn btn-outline-danger btn-sm">Заблокировать</button> */}
             </td>
         </tr>
     );

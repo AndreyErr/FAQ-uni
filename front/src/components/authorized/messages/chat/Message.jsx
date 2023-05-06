@@ -7,7 +7,6 @@ function Message(props){
   const {user} = useContext(Context)
   const params = useParams();
   const dateadd = props.data.dateadd.substring(0, props.data.dateadd.length - 14)
-  console.log(props)
     return(
       <tr className="border-bottom border-4">
         <th scope="row" className="table-secondary" width="15%">

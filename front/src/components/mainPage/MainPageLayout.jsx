@@ -1,11 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { Context } from "../..";
 import FaqLayout from "../faq/FaqLayout";
-import Loader from "../ui/Loader";
 import MainPageConnectLayout from "./connect/MainPageConnectLayout";
 import MainPageLogin from "./MainPageLogin";
 import MainPageTitle from "./MainPageTitle";
-import { selectAllFaqs } from "../../http/faqAPI";
 
 function MainPageLayout(props){
 
@@ -29,9 +27,13 @@ function MainPageLayout(props){
             <MainPageTitle />
             {loginLayout()}
             <FaqLayout type={'part'} count={5} sort={'top'} blockCount={4}/>
+            {!user.user['status'] 
+            ? <MainPageConnectLayout status={-1} />
+            : null
+            }
             {user.user['status'] < 3 
-            ? <MainPageConnectLayout />
-            : ''
+            ? <MainPageConnectLayout status={user.user['status']} />
+            : null
             }
         </main>
     );

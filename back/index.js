@@ -46,14 +46,14 @@ io.on('connection', (socket) => {
   try {
     if (!token) throw new Error();
     if (tokenService.validateToken(token) == null) throw new Error();
-    console.log('a user connected ' + socket.id);
+    // console.log('a user connected ' + socket.id);
     selectAction(io, socket)
   } catch (err) {
       // jwt verification failed
       socket.disconnect(); // disconnect client 
   }
   socket.on('disconnect', () => {
-    console.log('a user disconnected');
+    // console.log('a user disconnected');
 });
 });
 
