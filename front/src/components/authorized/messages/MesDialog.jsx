@@ -106,7 +106,7 @@ function MesDialog(props){
     <Link to={"/" + href + "/" + props.data.dialogid} className={`list-group-item list-group-item-action py-3 lh-sm ${readStatus} ${props.act}`} aria-current="true">
     <div className="row">
       <div className="col-md-12">
-        <strong className="mb-1">
+        <strong className="mb-1 text-break">
           {user.user['status'] > 2 
           ? props.data.userasklogin 
             ? props.data.userasklogin

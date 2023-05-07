@@ -16,12 +16,15 @@ function Message(props){
             ? <b className="text-info">Удалён</b> 
             : (!props.data.login || props.data.login == user.user['login']) 
               ? <b className="text-danger">Вы</b> 
-              : props.data.login} 
+              : <span className="text-break">{props.data.login}</span>} 
         <br></br>
         <small className="text-primary">{dateadd} {props.data.timeadd}</small></th>
         <td>
           <ReactMarkdown>{props.data.textmessage}</ReactMarkdown>
-          {props.data.fileflag && Number(props.data.dialogid) === Number(params.chatId) ? <a href={'http://localhost:9000/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank"><img src={'http://localhost:9000/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> : null}
+          {props.data.fileflag && Number(props.data.dialogid) === Number(params.chatId) 
+          ? <a href={'xxx/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank">
+            <img src={'xxx/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> 
+          : null}
         </td>
       </tr>
     );

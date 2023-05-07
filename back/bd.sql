@@ -410,7 +410,7 @@ INSERT INTO public.probability_receiving_chat (prob_id, user_id, prob) VALUES (1
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.users (user_id, login, email, pass, status) VALUES (1, 'aaa', 'aaa@aaa.aaa', '$2b$15$sSblCkzHtcERKbG2hv.aqu4B/4oUH1GM0sL.5M4fJahCBohil3RSC', 5);
+INSERT INTO public.users (user_id, login, email, pass, status) VALUES (1, 'aaa', 'aaa@aaa.aaa', '$2b$15$sSblCkzHtcERKbG2hv.aqu4B/4oUH1GM0sL.5M4fJahCBohil3RSC', 5); --pass: 12345
 
 
 --

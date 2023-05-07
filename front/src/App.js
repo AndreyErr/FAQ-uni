@@ -39,7 +39,6 @@ const App = observer( () => {
       :''}
       <Header loadingPageStatus={loading}/>
         <Routes>
-          <Route path='*' element={<NotFound loadingPageStatus={loading} />} />
           <Route path="/" element={<MainPageLayout loadingPageStatus={loading} />} />
           <Route exact path="/faq" element={<FaqPageLayout /> } />
           <Route exact path="/faq/:topicId" element={<FaqTopicPageLayout /> } />
@@ -72,6 +71,7 @@ const App = observer( () => {
           <Route exact path="/history/:chatId" element={user.isAuth ? <AuPageLayout type={'history'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           <Route exact path="/chat" element={user.isAuth ? <AuPageLayout type={'chat'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
           <Route exact path="/chat/:chatId" element={user.isAuth ? <AuPageLayout type={'chat'} loadingPageStatus={loading} /> : <NotFound loadingPageStatus={loading} />} />
+          <Route path='*' element={<NotFound loadingPageStatus={loading} />} />
         </Routes>
       <Footer />
     </div>

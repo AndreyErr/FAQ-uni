@@ -21,7 +21,7 @@ class userService {
         if(candidate.rowCount > 0){
             throw apiError.BadRequest('USER_EXIST', `Пользователь с email "${email}" уже существует`)
         }
-        const hashPass = await bcrypt.hash(pass, 15)
+        const hashPass = await bcrypt.hash(pass, 5)
         const newPerson = await pgdb.query('INSERT INTO users (login, email, pass, status) values ($1, $2, $3, 1) RETURNING *', [login, email, hashPass])
         const tokens = tokenService.generateTokens({id: newPerson.rows[0]['user_id'], login: newPerson.rows[0]['login'], email: newPerson.rows[0]['email'], status: newPerson.rows[0]['status']})
         return {

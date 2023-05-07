@@ -3,7 +3,7 @@ const jwt = localStorage.getItem('token')
 
 let socket
 if(jwt){
-    socket = io('http://localhost:9000', {
+    socket = io('xxx', {
         query: {
             token: jwt
         }
