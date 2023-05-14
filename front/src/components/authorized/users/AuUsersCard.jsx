@@ -110,7 +110,7 @@ function AuUsersCard(props){
     return(
         <tr>
             <th scope="row">{props.data.user_id}</th>
-            <td>{props.data.login}</td>
+            <td className="text-break">{props.data.login}</td>
             <td>{textStatus} ({status}) {props.data.email}</td>
             <td className="hstack gap-3">
                 {actions()}

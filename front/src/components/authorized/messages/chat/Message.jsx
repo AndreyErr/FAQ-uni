@@ -22,9 +22,9 @@ function Message(props){
         <td>
           <ReactMarkdown>{props.data.textmessage}</ReactMarkdown>
           {props.data.fileflag && Number(props.data.dialogid) === Number(params.chatId) 
-          ? <a href={'xxx/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank">
-            <img src={'xxx/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> 
-          : null}
+          ? <a href={'***SERVERPASS***/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank">
+            <img src={'***SERVERPASS***/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> 
+            : null}
         </td>
       </tr>
     );

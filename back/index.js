@@ -1,7 +1,6 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-const cookieParser = require('cookie-parser')
 
 const db = require('./pgdb')
 
@@ -25,11 +24,10 @@ const { selectAction } = require('./controllers/socketController')
 
 app.use(fileUpload({}))
 app.use(express.json());
-app.use(cookieParser());
 app.use(cors());
 
 app.use('/api', router)
-app.use('/files', filesRouter)//express.static('./files')
+app.use('/files', filesRouter)
 
 app.use(errorMidle)
 

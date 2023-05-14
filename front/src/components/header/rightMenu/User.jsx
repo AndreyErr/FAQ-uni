@@ -1,13 +1,11 @@
 import React, { useContext } from "react";
 import { Context } from "../../..";
-import Cookies from 'js-cookie';
 import '../../../styles/header.css';
 import { Link } from "react-router-dom";
 
 function UserRightMenu(props){
 
     const {user} = useContext(Context)
-    const au = Cookies.get('au');
 
     const logOut = () => {
         user.setUser({})

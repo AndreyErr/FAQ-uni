@@ -22,6 +22,8 @@ class chatService {
                 throw apiError.BadRequest('NOT_FOUND_TYPE', `Не найден тип`)
         }
 
+        await this.finChatsWithTime() ///////
+
         let data
         let countAlldata
         let whereChat = '(askuser = ' + id + ' OR ansuser = ' + id + ') AND (dialogstatus = 0 OR dialogstatus = 1 OR (dialogstatus = 8 AND ansuser = ' + id + ' ) OR (dialogstatus = 9 AND ansuser = ' + id + ' ))'
@@ -94,18 +96,18 @@ class chatService {
             dialogType = 3
         }
         await this.finChatsWithTime() ///////
-        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date + 1, localtime(0), $3, 0, 1) RETURNING *', [id, selectUserId, dialogType])
-        const messageFirst = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date + 1, localtime(0), $3, $4) RETURNING *', [message, id, dialogaded.rows[0]['dialogid'], file])
+        const dialogaded = await pgdb.query('INSERT INTO dialogs (askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread) values ($1, $2, current_date, localtime(0), $3, 0, 1) RETURNING *', [id, selectUserId, dialogType])
+        const messageFirst = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date, localtime(0), $3, $4) RETURNING *', [message, id, dialogaded.rows[0]['dialogid'], file])
         const dialog = await pgdb.query('SELECT (SELECT fromuser FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_user_add, (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_date_add, (SELECT timeadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC, timeadd DESC LIMIT 1) AS last_mes_time_add, dialogid, askuser, ansuser, dateadd, timeadd, dialogtype, dialogstatus, needtoread, userask.login AS userasklogin, userans.login AS useranslogin FROM dialogs LEFT JOIN users AS userask ON userask.user_id = dialogs.askuser LEFT JOIN users AS userans ON userans.user_id = dialogs.askuser WHERE dialogid = $1', [dialogaded.rows[0]['dialogid']])
         return [dialog.rows[0], messageFirst.rows[0]]
     }
 
     async finChatsWithTime(){
-        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus = 0 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date + 1 - interval '5 days'")
+        const dialogs = await pgdb.query("SELECT * FROM dialogs WHERE dialogstatus = 0 AND (SELECT dateadd FROM messages WHERE dialogid = dialogs.dialogid ORDER BY dateadd DESC LIMIT 1) < current_date - interval '5 days'")
         if(dialogs.rowCount > 0){
             let index = 0
                 for (index = 0; index < dialogs.rowCount; ++index) {
-                    await pgdb.query("INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ('##### Чат закрыт системой из-за отсутствия активности в течении 20 дней!', -1, current_date + 1, localtime(0), $1)", [dialogs.rows[index]['dialogid']])
+                    await pgdb.query("INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid) values ('##### Чат закрыт системой из-за отсутствия активности в течении 20 дней!', -1, current_date, localtime(0), $1)", [dialogs.rows[index]['dialogid']])
                     await pgdb.query("UPDATE dialogs SET dialogstatus = 10 WHERE dialogid = $1", [dialogs.rows[index]['dialogid']])
                 }
             }
@@ -125,7 +127,7 @@ class chatService {
         }else if(((aboutDialog.rows[0]['dialogstatus'] == 8 || aboutDialog.rows[0]['dialogstatus'] == 9) && aboutDialog.rows[0]['ansuser'] != decoded.data.id) || aboutDialog.rows[0]['dialogstatus'] == 10){
             throw apiError.BadRequest('HISTORI', `Чат является историей и его нельзя изменить`)
         }
-        const data = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date + 1, localtime(0), $3, $4) RETURNING *', [message, decoded.data.id, dialogid, file])
+        const data = await pgdb.query('INSERT INTO messages (textmessage, fromuser, dateadd, timeadd, dialogid, fileflag) values ($1, $2, current_date, localtime(0), $3, $4) RETURNING *', [message, decoded.data.id, dialogid, file])
         let dalogStatus = aboutDialog.rows[0]['dialogstatus']
         let needtoread = 1
         if(finFlag == 10){
