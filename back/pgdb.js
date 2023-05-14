@@ -1,6 +1,6 @@
 const Pool = require('pg').Pool
 const pool = new Pool({
-    // connectionString: process.env.DBConnLink
+    connectionString: process.env.DBConnLink
     // user: process.env.POSTGRES_USER,
     // password: process.env.POSTGRES_PASSWORD,
     // host: process.env.POSTGRES_HOST,
