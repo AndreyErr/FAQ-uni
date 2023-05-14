@@ -22,8 +22,8 @@ function Message(props){
         <td>
           <ReactMarkdown>{props.data.textmessage}</ReactMarkdown>
           {props.data.fileflag && Number(props.data.dialogid) === Number(params.chatId) 
-          ? <a href={'***SERVERPASS***/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank">
-            <img src={'***SERVERPASS***/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> 
+          ? <a href={'https://faq-server.onrender.com/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} target="_blank">
+            <img src={'https://faq-server.onrender.com/files/'+localStorage.getItem('token')+'|&|'+params.chatId+'/chats/'+params.chatId+'/'+props.data.messageid+'.png'} /></a> 
             : null}
         </td>
       </tr>

@@ -1,11 +1,11 @@
 import axios from "axios";
 
 const $host = axios.create({
-    baseURL: '***SERVERPASS***/api/'
+    baseURL: 'https://faq-server.onrender.com/api/'
 })
 
 const $authHost = axios.create({
-    baseURL: '***SERVERPASS***/api/'
+    baseURL: 'https://faq-server.onrender.com/api/'
 })
 
 const authInterceptor = config => {
