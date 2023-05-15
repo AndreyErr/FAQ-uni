@@ -4,6 +4,7 @@ import FaqLayout from "../faq/FaqLayout";
 import MainPageConnectLayout from "./connect/MainPageConnectLayout";
 import MainPageLogin from "./MainPageLogin";
 import MainPageTitle from "./MainPageTitle";
+import { Link } from "react-router-dom";
 
 function MainPageLayout(props){
 
@@ -27,6 +28,9 @@ function MainPageLayout(props){
             <MainPageTitle />
             {loginLayout()}
             <FaqLayout type={'part'} count={5} sort={'top'} blockCount={4}/>
+            <div className="d-grid gap-2 container">
+                <Link to="/faq" className="btn btn-primary">Все FAQ</Link>
+            </div>
             {!user.user['status'] 
             ? <MainPageConnectLayout status={-1} />
             : null
